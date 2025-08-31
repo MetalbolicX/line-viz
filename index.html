@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Line Viz Component Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 2rem;
+    }
+
+    .demo {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    line-viz {
+      height: 500px;
+      display: block;
+    }
+
+    .demo h2 {
+      margin: 0 0 1rem 0;
+      color: #555;
+    }
+
+    .controls {
+      margin-bottom: 1rem;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 16px;
+      margin: 0 8px 8px 0;
+      border: 1px solid #007acc;
+      border-radius: 4px;
+      background: #007acc;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #005a9e;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Line Viz Component Demo</h1>
+    <div class="demo">
+      <h2>Interactive Line Chart</h2>
+      <line-viz
+        id="chart"
+        x-ticks="8"
+        y-ticks="4"
+        transition-time="3000"
+        format-y-axis="~s"
+        x-axis-label="Hour of Day"
+        y-axis-label="Temperature (°C)"
+      >
+        <h3 slot="chart-title">Sample Line Series Data</h3>
+      </line-viz>
+    </div>
+  <script type="module" src="./main.ts" lang="ts"></script>
+</body>
+</html>
