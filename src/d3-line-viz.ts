@@ -28,7 +28,7 @@ export const createLineVizChart = () => {
       bottom: 30,
       left: 40,
     } as MarginConfig,
-    formatXAxis: "%Y-%m-%d",
+    formatXAxis: ".2f",
     formatYAxis: ".2f",
     yAxisLabel: "",
     xAxisLabel: "",
@@ -48,7 +48,7 @@ export const createLineVizChart = () => {
   let margin: MarginConfig = { ...defaultConfig.margin };
   let formatXAxis: string = defaultConfig.formatXAxis;
   let formatYAxis: string = defaultConfig.formatYAxis;
-  let xSerie: (d: ChartDataRow) => Date | number;
+  let xSerie: (d: ChartDataRow) => number;
   let innerWidth: number = 0;
   let innerHeight: number = 0;
   let xScale: d3.ScaleLinear<number, number>;
@@ -88,7 +88,7 @@ export const createLineVizChart = () => {
       .tickFormat(d3.format(formatXAxis) as any);
 
     selection
-      .selectAll("g.x.axis")
+      .selectAll(".x.axis")
       .data([null])
       .join("g")
       .attr("class", "x axis")
@@ -113,7 +113,7 @@ export const createLineVizChart = () => {
       .tickFormat(d3.format(formatYAxis));
 
     selection
-      .selectAll("g.y.axis")
+      .selectAll(".y.axis")
       .data([null])
       .join("g")
       .attr("class", "y axis")
@@ -377,7 +377,7 @@ export const createLineVizChart = () => {
 
     // Place legend at top right, horizontally
     const legendGroup = selection
-      .selectAll("g.legend")
+      .selectAll(".legend")
       .data([null])
       .join("g")
       .attr("class", "legend")
@@ -442,8 +442,8 @@ export const createLineVizChart = () => {
     // Use d3.bisector for O(log n) lookup
     const xValues = data.map(xSerie);
     const mouseDate = xScale.invert(mouseX);
-    const bisect = d3.bisector((d: Date | number) => d).center;
-    const idx = bisect(xValues, mouseDate);
+    const bisect = d3.bisector((d: number) => d).center;
+    const idx = bisect(xValues as number[], mouseDate);
     // Clamp index to valid range
     const clampedIdx = Math.max(0, Math.min(idx, data.length - 1));
     if (lastCursorIdx === clampedIdx) return; // Only update if changed
@@ -522,15 +522,15 @@ export const createLineVizChart = () => {
 
   const validateSetup = (): boolean => {
     if (!series || !Array.isArray(series) || !series.length) {
-      console.warn("[d3-time-viz] Chart series is missing or empty.");
+      console.warn("[d3-line-viz] Chart series is missing or empty.");
       return false;
     }
     if (!data || !Array.isArray(data) || !data.length) {
-      console.warn("[d3-time-viz] Chart data is missing or empty.");
+      console.warn("[d3-line-viz] Chart data is missing or empty.");
       return false;
     }
     if (typeof xSerie !== "function") {
-      console.warn("[d3-time-viz] xSerie accessor is missing.");
+      console.warn("[d3-line-viz] xSerie accessor is missing.");
       return false;
     }
     if (
@@ -539,7 +539,7 @@ export const createLineVizChart = () => {
       typeof colorScale.domain !== "function" ||
       typeof colorScale.range !== "function"
     ) {
-      console.warn("[d3-time-viz] colorScale is missing or invalid.");
+      console.warn("[d3-line-viz] colorScale is missing or invalid.");
       return false;
     }
     return true;
@@ -562,13 +562,13 @@ export const createLineVizChart = () => {
     selection: Selection<SVGElement, unknown, null, undefined>
   ) => {
     if (!validateSetup()) {
-      console.warn("[d3-time-viz] Chart setup is invalid.");
+      console.warn("[d3-line-viz] Chart setup is invalid.");
       return;
     }
 
     const { width, height } = getSize(selection);
     if (!(width && height)) {
-      console.warn("[d3-time-viz] SVG element has invalid width or height.");
+      console.warn("[d3-line-viz] SVG element has invalid width or height.");
       return;
     }
 
@@ -576,15 +576,15 @@ export const createLineVizChart = () => {
     innerWidth = width - (margin.left + margin.right);
     innerHeight = height - (margin.top + margin.bottom);
     if (innerWidth <= 0 || innerHeight <= 0) {
-      console.warn("[d3-time-viz] SVG element has non-positive dimensions.");
+      console.warn("[d3-line-viz] SVG element has non-positive dimensions.");
       return;
     }
 
     const xVals = data.map(xSerie);
     const [xMin, xMax] = d3.extent(xVals);
-    if (!(xMin instanceof Date && xMax instanceof Date)) {
+    if (!(typeof xMin === "number" && typeof xMax === "number")) {
       console.warn(
-        "[d3-time-viz] xSerie must return Date objects for all data points."
+        "[d3-line-viz] xSerie must return numbers for all data points."
       );
       return;
     }
@@ -602,7 +602,7 @@ export const createLineVizChart = () => {
     const [yMin, yMax] = d3.extent(yVals);
     if (!(typeof yMin === "number" && typeof yMax === "number")) {
       console.warn(
-        "[d3-time-viz] Series accessors must return numbers for all data points."
+        "[d3-line-viz] Series accessors must return numbers for all data points."
       );
       return;
     }
@@ -630,7 +630,7 @@ export const createLineVizChart = () => {
    * @param accessor - A function that extracts the x value from a data row.
    * @returns The chart instance for chaining.
    */
-  chart.xSerie = (accessor: (d: ChartDataRow) => Date | number) => {
+  chart.xSerie = (accessor: (d: ChartDataRow) => number) => {
     if (typeof accessor !== "function") {
       console.warn("xSerie accessor must be a function");
       return chart;

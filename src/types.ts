@@ -9,7 +9,7 @@ export interface LineVizSeriesConfig<T = ChartDataRow> {
 export interface LineVizConfig<T = ChartDataRow> {
   data: T[];
   xSerie: {
-    accessor: (row: T) => Date | number;
+    accessor: (row: T) => number;
     label?: string;
     // format?: string;
   };

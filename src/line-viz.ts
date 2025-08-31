@@ -234,7 +234,7 @@ export class LineViz extends HTMLElement {
     this._hiddenSeries = new Set<string>();
     this._config = {
       data: [],
-      xSerie: { accessor: (d: ChartDataRow) => d.date as Date },
+      xSerie: { accessor: (d: ChartDataRow) => d.x as number },
       ySeries: [],
     };
     this.yAxisLabel = "";
@@ -353,16 +353,8 @@ export class LineViz extends HTMLElement {
    */
   public get filteredData(): ChartDataRow[] {
     if (!this._data.length) return [];
-    const startDate = new Date(this._startDate);
-    const endDate = new Date(this._endDate);
-    // Adjust for timezone offset by setting hours to noon
-    startDate.setHours(12, 0, 0, 0);
-    endDate.setHours(12, 0, 0, 0);
 
-    return this._data.filter((d) => {
-      const date = this._config.xSerie.accessor(d) as Date;
-      return date >= startDate && date <= endDate;
-    });
+    return this._data;
   }
 
   /**
@@ -459,11 +451,6 @@ export class LineViz extends HTMLElement {
             <select>
               <option value="All">All Series</option>
             </select>
-          </div>
-          <div class="controls-right">
-            <input type="date" />
-            <input type="date" />
-            <button>Reset Dates</button>
           </div>
         </div>
         <figure>
