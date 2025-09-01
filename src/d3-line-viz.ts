@@ -111,7 +111,10 @@ export const createLineVizChart = () => {
     } else {
       // Update x scale domain based on brush selection
       const [x0, x1] = extent as [number, number];
-      const newDomain: [number, number] = [xScale.invert(x0), xScale.invert(x1)];
+      const newDomain: [number, number] = [
+        xScale.invert(x0),
+        xScale.invert(x1),
+      ];
 
       // Check if the selection is meaningful (not too small)
       const minSelectionWidth = 10; // pixels
@@ -124,7 +127,12 @@ export const createLineVizChart = () => {
 
       // Clear the brush selection after zooming
       const brushContainer = selection.select(".brush-container");
-      const brushGroup = brushContainer.select(".brush") as d3.Selection<SVGGElement, unknown, any, any>;
+      const brushGroup = brushContainer.select(".brush") as d3.Selection<
+        SVGGElement,
+        unknown,
+        any,
+        any
+      >;
       brushGroup.call(brush.move, null);
     }
 
@@ -141,10 +149,7 @@ export const createLineVizChart = () => {
     selection: Selection<SVGElement, unknown, null, undefined>
   ): void => {
     // Redraw with smooth transitions
-    selection
-      .call(renderXAxis)
-      .call(renderXGrid)
-      .call(renderSeries);
+    selection.call(renderXAxis).call(renderXGrid).call(renderSeries);
   };
 
   /**
@@ -158,8 +163,12 @@ export const createLineVizChart = () => {
     if (isStatic) return;
 
     // Create brush behavior - use inner chart dimensions only
-    brush = d3.brushX()
-      .extent([[0, 0], [innerWidth, innerHeight]])
+    brush = d3
+      .brushX()
+      .extent([
+        [0, 0],
+        [innerWidth, innerHeight],
+      ])
       .on("end", (event) => handleBrush(event, selection));
 
     // Add clip path to prevent drawing outside chart area
@@ -174,10 +183,10 @@ export const createLineVizChart = () => {
       .selectAll("rect")
       .data([null])
       .join("rect")
-      .attr("width", innerWidth)
-      .attr("height", innerHeight)
       .attr("x", 0)
-      .attr("y", 0);
+      .attr("y", 0)
+      .attr("width", innerWidth)
+      .attr("height", innerHeight);
 
     // Create the brush group with clip path
     const brushGroup = selection
