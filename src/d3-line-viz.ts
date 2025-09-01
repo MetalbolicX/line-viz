@@ -56,6 +56,12 @@ export const createLineVizChart = () => {
   let yAxisLabel: string = defaultConfig.yAxisLabel;
   let xAxisLabel: string = defaultConfig.xAxisLabel;
 
+  // Brush and zoom state variables
+  let brush: d3.BrushBehavior<unknown>;
+  let originalXDomain: [number, number] | null = null;
+  let isZoomed: boolean = false;
+  let idleTimeout: any = null;
+
   /**
    * Utility function to get the size of the SVG element.
    * @description
@@ -69,6 +75,125 @@ export const createLineVizChart = () => {
     const { width = 0, height = 0 } =
       selection.node()?.getBoundingClientRect() || {};
     return { width, height };
+  };
+
+  /**
+   * Resets the idle timeout to null.
+   * @returns {void}
+   */
+  const idled = (): void => {
+    idleTimeout = null;
+  };
+
+  /**
+   * Handles the brush event for x-axis zooming.
+   * @param event - The brush event
+   * @param selection - The D3 selection of the SVG element
+   * @returns {void}
+   */
+  const handleBrush = (
+    event: d3.D3BrushEvent<unknown>,
+    selection: Selection<SVGElement, unknown, null, undefined>
+  ): void => {
+    const extent = event.selection;
+
+    if (!extent) {
+      // If no selection, wait a bit then reset to original domain
+      if (!idleTimeout) {
+        idleTimeout = setTimeout(idled, 350);
+        return;
+      }
+
+      if (originalXDomain) {
+        xScale.domain(originalXDomain);
+        isZoomed = false;
+      }
+    } else {
+      // Update x scale domain based on brush selection
+      const [x0, x1] = extent as [number, number];
+      const newDomain: [number, number] = [xScale.invert(x0), xScale.invert(x1)];
+
+      // Check if the selection is meaningful (not too small)
+      const minSelectionWidth = 10; // pixels
+      if (x1 - x0 < minSelectionWidth) {
+        return;
+      }
+
+      xScale.domain(newDomain);
+      isZoomed = true;
+
+      // Clear the brush selection after zooming
+      const brushContainer = selection.select(".brush-container");
+      const brushGroup = brushContainer.select(".brush") as d3.Selection<SVGGElement, unknown, any, any>;
+      brushGroup.call(brush.move, null);
+    }
+
+    // Redraw chart with transitions
+    redrawChart(selection);
+  };
+
+  /**
+   * Redraws the chart after zoom/brush operations.
+   * @param selection - The D3 selection of the SVG element
+   * @returns {void}
+   */
+  const redrawChart = (
+    selection: Selection<SVGElement, unknown, null, undefined>
+  ): void => {
+    // Redraw with smooth transitions
+    selection
+      .call(renderXAxisWithTransition)
+      .call(renderXGrid)
+      .call(renderSeriesWithTransition);
+  };
+
+  /**
+   * Sets up the brush behavior for x-axis zooming.
+   * @param selection - The D3 selection of the SVG element
+   * @returns {void}
+   */
+  const setupBrush = (
+    selection: Selection<SVGElement, unknown, null, undefined>
+  ): void => {
+    if (isStatic) return;
+
+    // Create brush behavior - use inner chart dimensions only
+    brush = d3.brushX()
+      .extent([[0, 0], [innerWidth, innerHeight]])
+      .on("end", (event) => handleBrush(event, selection));
+
+    // Add clip path to prevent drawing outside chart area
+    selection
+      .selectAll("defs")
+      .data([null])
+      .join("defs")
+      .selectAll("#clip")
+      .data([null])
+      .join("clipPath")
+      .attr("id", "clip")
+      .selectAll("rect")
+      .data([null])
+      .join("rect")
+      .attr("width", innerWidth)
+      .attr("height", innerHeight)
+      .attr("x", 0)
+      .attr("y", 0);
+
+    // Create the brush group with clip path
+    const brushGroup = selection
+      .selectAll(".brush-container")
+      .data([null])
+      .join("g")
+      .attr("class", "brush-container")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`)
+      .attr("clip-path", "url(#clip)");
+
+    brushGroup
+      .selectAll(".brush")
+      .data([null])
+      .join("g")
+      .attr("class", "brush")
+      .call(brush as any);
   };
 
   /**
@@ -93,6 +218,30 @@ export const createLineVizChart = () => {
       .join("g")
       .attr("class", "x axis")
       .attr("transform", `translate(0, ${innerHeight + margin.top})`)
+      .call(xAxis as any);
+  };
+
+  /**
+   * Renders the X axis with transition.
+   * @param {Selection<SVGElement, unknown, null, undefined>} selection - The D3 selection of the SVG element.
+   * @returns {void}
+   */
+  const renderXAxisWithTransition = (
+    selection: Selection<SVGElement, unknown, null, undefined>
+  ): void => {
+    const xAxis = d3
+      .axisBottom(xScale)
+      .ticks(xTicks)
+      .tickFormat(d3.format(formatXAxis) as any);
+
+    selection
+      .selectAll(".x.axis")
+      .data([null])
+      .join("g")
+      .attr("class", "x axis")
+      .attr("transform", `translate(0, ${innerHeight + margin.top})`)
+      .transition()
+      .duration(1000)
       .call(xAxis as any);
   };
 
@@ -190,8 +339,8 @@ export const createLineVizChart = () => {
 
     const line = d3
       .line<{ x: number | Date; y: number }>()
-      .x(({ x }) => xScale(x))
-      .y(({ y }) => yScale(y));
+      .x(({ x }) => xScale(x) - margin.left)
+      .y(({ y }) => yScale(y) - margin.top);
     isCurved && line.curve(d3.curveCatmullRom);
 
     // Create a group for all series
@@ -199,7 +348,9 @@ export const createLineVizChart = () => {
       .selectAll(".series")
       .data([null])
       .join("g")
-      .attr("class", "series");
+      .attr("class", "series")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`)
+      .attr("clip-path", "url(#clip)");
 
     // For each series, create a group and a single path inside it
     const group = seriesGroup
@@ -256,6 +407,72 @@ export const createLineVizChart = () => {
   };
 
   /**
+   * Renders the series lines with transitions on the chart.
+   * @description
+   * Each series is represented by a path element with smooth transitions.
+   * The lines can be curved based on the `isCurved` flag.
+   * @param {Selection<SVGElement, unknown, null, undefined>} selection - The D3 selection of the SVG element.
+   * @returns {void}
+   */
+  const renderSeriesWithTransition = (
+    selection: Selection<SVGElement, unknown, null, undefined>
+  ): void => {
+    if (!(series?.length && data?.length)) return;
+
+    const line = d3
+      .line<{ x: number | Date; y: number }>()
+      .x(({ x }) => xScale(x) - margin.left)
+      .y(({ y }) => yScale(y) - margin.top);
+    isCurved && line.curve(d3.curveCatmullRom);
+
+    // Create a group for all series
+    const seriesGroup = selection
+      .selectAll(".series")
+      .data([null])
+      .join("g")
+      .attr("class", "series")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`)
+      .attr("clip-path", "url(#clip)");
+
+    // For each series, create a group and a single path inside it
+    const group = seriesGroup
+      .selectAll<SVGGElement, LineVizSeriesConfig>(".series-group")
+      .data(series)
+      .join("g")
+      .attr("class", "series-group")
+      .attr("data-label", ({ label }) => label);
+
+    group
+      .selectAll<SVGPathElement, LineVizSeriesConfig>("path.serie")
+      .data(({ label, accessor, color }) => [
+        {
+          label,
+          color: color || colorScale(label),
+          coordinates: data.map((row) => ({
+            x: xSerie(row),
+            y: accessor(row),
+          })),
+        },
+      ])
+      .join(
+        (enter) =>
+          enter
+            .append("path")
+            .attr("class", "serie")
+            .attr("data-label", ({ label }) => label)
+            .attr("d", ({ coordinates }) => line(coordinates))
+            .style("stroke", ({ color }) => color),
+        (update) =>
+          update
+            .transition()
+            .duration(1000)
+            .style("stroke", ({ color }) => color)
+            .attr("d", ({ coordinates }) => line(coordinates)),
+        (exit) => exit.remove()
+      );
+  };
+
+  /**
    * Renders the cursor on the chart.
    * @description
    * The cursor is a vertical line and points that follow the mouse position.
@@ -273,7 +490,9 @@ export const createLineVizChart = () => {
       .selectAll(".series")
       .data([null])
       .join("g")
-      .attr("class", "series");
+      .attr("class", "series")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`)
+      .attr("clip-path", "url(#clip)");
 
     seriesGroup
       .selectAll(".series-group")
@@ -293,8 +512,8 @@ export const createLineVizChart = () => {
       .join("circle")
       .attr("class", "cursor point")
       .attr("data-label", ({ label }) => label)
-      .attr("cx", ({ x }) => xScale(x))
-      .attr("cy", ({ y }) => yScale(y))
+      .attr("cx", ({ x }) => xScale(x) - margin.left)
+      .attr("cy", ({ y }) => yScale(y) - margin.top)
       .attr("r", 4)
       .style("stroke", ({ color }) => color)
       .attr("tabindex", 0)
@@ -309,10 +528,10 @@ export const createLineVizChart = () => {
       .data([closestRow])
       .join("line")
       .attr("class", "cursor vertical-line")
-      .attr("x1", xScale(xSerie(closestRow)))
-      .attr("y1", margin.top)
-      .attr("x2", xScale(xSerie(closestRow)))
-      .attr("y2", innerHeight + margin.top);
+      .attr("x1", xScale(xSerie(closestRow)) - margin.left)
+      .attr("y1", 0)
+      .attr("x2", xScale(xSerie(closestRow)) - margin.left)
+      .attr("y2", innerHeight);
   };
 
   /**
@@ -594,6 +813,11 @@ export const createLineVizChart = () => {
       .range([margin.left, innerWidth + margin.left])
       .nice();
 
+    // Store the original domain for reset functionality
+    if (!originalXDomain) {
+      originalXDomain = xScale.domain() as [number, number];
+    }
+
     // Y scale (all series)
     const yVals = data.flatMap((d: ChartDataRow) =>
       series.map(({ accessor }: LineVizSeriesConfig) => accessor(d))
@@ -620,7 +844,8 @@ export const createLineVizChart = () => {
       .call(renderYGrid)
       .call(renderYAxisLabel)
       .call(renderSeries)
-      .call(renderLegend);
+      .call(renderLegend)
+      .call(setupBrush);
 
     setupChartEventListeners(selection);
   };
@@ -836,6 +1061,18 @@ export const createLineVizChart = () => {
       return chart;
     }
     tooltip = tooltipInstance;
+    return chart;
+  };
+
+  /**
+   * Resets the zoom to the original x-axis domain.
+   * @returns The chart instance for chaining.
+   */
+  chart.resetZoom = () => {
+    if (originalXDomain && isZoomed) {
+      xScale.domain(originalXDomain);
+      isZoomed = false;
+    }
     return chart;
   };
 

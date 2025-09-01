@@ -30,6 +30,7 @@ export class LineViz extends HTMLElement {
   private declare _tooltip: TipVizTooltip;
   #shadowRoot: ShadowRoot;
   #selectElement!: HTMLSelectElement;
+  #resetButton!: HTMLButtonElement;
 
   public static get observedAttributes() {
     return [
@@ -215,6 +216,22 @@ export class LineViz extends HTMLElement {
     font-size: 0.8em;
     text-anchor: middle;
   }
+
+  .brush .selection {
+    fill: #007acc;
+    fill-opacity: 0.15;
+    stroke: #007acc;
+    stroke-width: 1;
+  }
+
+  .brush .handle {
+    fill: #007acc;
+    opacity: 0.8;
+  }
+
+  .brush-container {
+    pointer-events: all;
+  }
   `.trim();
   }
 
@@ -399,6 +416,35 @@ export class LineViz extends HTMLElement {
   };
 
   /**
+   * Handles the reset zoom button click.
+   * @returns {void}
+   */
+  #handleResetZoom = (): void => {
+    if (!this.#svgRef) return;
+
+    const chart = createLineVizChart()
+      .colorScale(this.#colorScale)
+      .data(this.filteredData)
+      .formatXAxis(this.formatXAxis)
+      .formatYAxis(this.formatYAxis)
+      .isCurved(this.isCurved)
+      .isStatic(this.isStatic)
+      .margin(this.margin)
+      .series(this.filteredSeries)
+      .tooltip(this._tooltip)
+      .transitionTime(this.transitionTime)
+      .xAxisLabel(this.xAxisLabel)
+      .xSerie(this._config.xSerie.accessor)
+      .xTicks(this.xTicks)
+      .yAxisLabel(this.yAxisLabel)
+      .yTicks(this.yTicks);
+
+    // Reset zoom and re-render
+    chart.resetZoom();
+    select(this.#svgRef).call(chart);
+  };
+
+  /**
    * Renders the chart.
    * @returns {void}
    */
@@ -452,6 +498,9 @@ export class LineViz extends HTMLElement {
               <option value="All">All Series</option>
             </select>
           </div>
+          <div class="controls-right">
+            <button id="reset-zoom">Reset Zoom</button>
+          </div>
         </div>
         <figure>
           <slot name="chart-title" class="chart-title"></slot>
@@ -476,6 +525,9 @@ export class LineViz extends HTMLElement {
     this.#selectElement = this.#shadowRoot.querySelector(
       "select"
     ) as HTMLSelectElement;
+    this.#resetButton = this.#shadowRoot.querySelector(
+      "#reset-zoom"
+    ) as HTMLButtonElement;
   }
 
   /**
@@ -484,6 +536,7 @@ export class LineViz extends HTMLElement {
    */
   #addEventListeners(): void {
     this.#selectElement.addEventListener("change", this.#handleSeriesChange);
+    this.#resetButton.addEventListener("click", this.#handleResetZoom);
   }
 
   /**
@@ -492,6 +545,7 @@ export class LineViz extends HTMLElement {
    */
   #removeEventListeners(): void {
     this.#selectElement.removeEventListener("change", this.#handleSeriesChange);
+    this.#resetButton.removeEventListener("click", this.#handleResetZoom);
     select(this.#svgRef)
       .on("pointermove", null)
       .on("pointerover", null)
@@ -529,6 +583,7 @@ export class LineViz extends HTMLElement {
 
     // Update controls state
     this.#selectElement.disabled = !hasData;
+    this.#resetButton.disabled = !hasData;
 
     this.#renderChart();
   }
