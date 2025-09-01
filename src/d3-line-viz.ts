@@ -142,9 +142,9 @@ export const createLineVizChart = () => {
   ): void => {
     // Redraw with smooth transitions
     selection
-      .call(renderXAxisWithTransition)
+      .call(renderXAxis)
       .call(renderXGrid)
-      .call(renderSeriesWithTransition);
+      .call(renderSeries);
   };
 
   /**
@@ -218,30 +218,6 @@ export const createLineVizChart = () => {
       .join("g")
       .attr("class", "x axis")
       .attr("transform", `translate(0, ${innerHeight + margin.top})`)
-      .call(xAxis as any);
-  };
-
-  /**
-   * Renders the X axis with transition.
-   * @param {Selection<SVGElement, unknown, null, undefined>} selection - The D3 selection of the SVG element.
-   * @returns {void}
-   */
-  const renderXAxisWithTransition = (
-    selection: Selection<SVGElement, unknown, null, undefined>
-  ): void => {
-    const xAxis = d3
-      .axisBottom(xScale)
-      .ticks(xTicks)
-      .tickFormat(d3.format(formatXAxis) as any);
-
-    selection
-      .selectAll(".x.axis")
-      .data([null])
-      .join("g")
-      .attr("class", "x axis")
-      .attr("transform", `translate(0, ${innerHeight + margin.top})`)
-      .transition()
-      .duration(1000)
       .call(xAxis as any);
   };
 
@@ -400,72 +376,6 @@ export const createLineVizChart = () => {
             })
             .transition()
             .duration(transitionTime)
-            .style("stroke", ({ color }) => color)
-            .attr("d", ({ coordinates }) => line(coordinates)),
-        (exit) => exit.remove()
-      );
-  };
-
-  /**
-   * Renders the series lines with transitions on the chart.
-   * @description
-   * Each series is represented by a path element with smooth transitions.
-   * The lines can be curved based on the `isCurved` flag.
-   * @param {Selection<SVGElement, unknown, null, undefined>} selection - The D3 selection of the SVG element.
-   * @returns {void}
-   */
-  const renderSeriesWithTransition = (
-    selection: Selection<SVGElement, unknown, null, undefined>
-  ): void => {
-    if (!(series?.length && data?.length)) return;
-
-    const line = d3
-      .line<{ x: number | Date; y: number }>()
-      .x(({ x }) => xScale(x) - margin.left)
-      .y(({ y }) => yScale(y) - margin.top);
-    isCurved && line.curve(d3.curveCatmullRom);
-
-    // Create a group for all series
-    const seriesGroup = selection
-      .selectAll(".series")
-      .data([null])
-      .join("g")
-      .attr("class", "series")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`)
-      .attr("clip-path", "url(#clip)");
-
-    // For each series, create a group and a single path inside it
-    const group = seriesGroup
-      .selectAll<SVGGElement, LineVizSeriesConfig>(".series-group")
-      .data(series)
-      .join("g")
-      .attr("class", "series-group")
-      .attr("data-label", ({ label }) => label);
-
-    group
-      .selectAll<SVGPathElement, LineVizSeriesConfig>("path.serie")
-      .data(({ label, accessor, color }) => [
-        {
-          label,
-          color: color || colorScale(label),
-          coordinates: data.map((row) => ({
-            x: xSerie(row),
-            y: accessor(row),
-          })),
-        },
-      ])
-      .join(
-        (enter) =>
-          enter
-            .append("path")
-            .attr("class", "serie")
-            .attr("data-label", ({ label }) => label)
-            .attr("d", ({ coordinates }) => line(coordinates))
-            .style("stroke", ({ color }) => color),
-        (update) =>
-          update
-            .transition()
-            .duration(1000)
             .style("stroke", ({ color }) => color)
             .attr("d", ({ coordinates }) => line(coordinates)),
         (exit) => exit.remove()
