@@ -13,58 +13,68 @@ export interface ChartConfig {
   isStatic: boolean;
 }
 
-export class ConfigurationManager {
-  private static readonly DEFAULT_CONFIG: ChartConfig = {
-    transitionTime: 0,
-    xTicks: 5,
-    yTicks: 5,
-    margin: { top: 30, right: 40, bottom: 30, left: 40 },
-    formatXAxis: ".2f",
-    formatYAxis: ".2f",
-    yAxisLabel: "",
-    xAxisLabel: "",
-    isCurved: false,
-    isStatic: false,
+const DEFAULT_TRANSITION_TIME = 0;
+const DEFAULT_X_TICKS = 5;
+const DEFAULT_Y_TICKS = 5;
+const DEFAULT_MARGIN: MarginConfig = { top: 30, right: 40, bottom: 30, left: 40 };
+const DEFAULT_FORMAT_X_AXIS = ".2f";
+const DEFAULT_FORMAT_Y_AXIS = ".2f";
+const DEFAULT_Y_AXIS_LABEL = "";
+const DEFAULT_X_AXIS_LABEL = "";
+const DEFAULT_IS_CURVED = false;
+const DEFAULT_IS_STATIC = false;
+
+const DEFAULT_CONFIG: ChartConfig = {
+  transitionTime: DEFAULT_TRANSITION_TIME,
+  xTicks: DEFAULT_X_TICKS,
+  yTicks: DEFAULT_Y_TICKS,
+  margin: DEFAULT_MARGIN,
+  formatXAxis: DEFAULT_FORMAT_X_AXIS,
+  formatYAxis: DEFAULT_FORMAT_Y_AXIS,
+  yAxisLabel: DEFAULT_Y_AXIS_LABEL,
+  xAxisLabel: DEFAULT_X_AXIS_LABEL,
+  isCurved: DEFAULT_IS_CURVED,
+  isStatic: DEFAULT_IS_STATIC,
+};
+
+export const ConfigurationManager = (() => {
+  const getDefaultConfig = (): ChartConfig => {
+    return { ...DEFAULT_CONFIG };
   };
 
-  static getDefaultConfig(): ChartConfig {
-    return { ...this.DEFAULT_CONFIG };
-  }
+  const validateConfig = (config: Partial<ChartConfig>): string[] => {
+    let errors: string[] = [];
+    if (config.transitionTime !== undefined && (typeof config.transitionTime !== "number" || config.transitionTime < 0)) {
+      errors = [...errors, "transitionTime must be a non-negative number"];
+    }
+    if (config.xTicks !== undefined && (typeof config.xTicks !== "number" || config.xTicks < 0)) {
+      errors = [...errors, "xTicks must be a non-negative number"];
+    }
+    if (config.yTicks !== undefined && (typeof config.yTicks !== "number" || config.yTicks < 0)) {
+      errors = [...errors, "yTicks must be a non-negative number"];
+    }
+    if (config.isCurved !== undefined && typeof config.isCurved !== "boolean") {
+      errors = [...errors, "isCurved must be a boolean"];
+    }
+    if (config.isStatic !== undefined && typeof config.isStatic !== "boolean") {
+      errors = [...errors, "isStatic must be a boolean"];
+    }
+    return errors;
+  };
 
-  static validateConfig(config: Partial<ChartConfig>): string[] {
-    return [
-      ...(config.transitionTime !== undefined && (typeof config.transitionTime !== "number" || config.transitionTime < 0)
-        ? ["transitionTime must be a non-negative number"]
-        : []),
-      ...(config.xTicks !== undefined && (typeof config.xTicks !== "number" || config.xTicks < 0)
-        ? ["xTicks must be a non-negative number"]
-        : []),
-      ...(config.yTicks !== undefined && (typeof config.yTicks !== "number" || config.yTicks < 0)
-        ? ["yTicks must be a non-negative number"]
-        : []),
-      ...(config.isCurved !== undefined && typeof config.isCurved !== "boolean"
-        ? ["isCurved must be a boolean"]
-        : []),
-      ...(config.isStatic !== undefined && typeof config.isStatic !== "boolean"
-        ? ["isStatic must be a boolean"]
-        : []),
-    ];
-  }
-
-  static mergeConfigs(base: ChartConfig, override: Partial<ChartConfig>): ChartConfig {
-    const validationErrors = this.validateConfig(override);
+  const mergeConfigs = (base: ChartConfig, override: Partial<ChartConfig>): ChartConfig => {
+    const validationErrors = validateConfig(override);
     if (validationErrors.length > 0) {
       console.warn("Configuration validation errors:", validationErrors);
     }
-
     return {
       ...base,
       ...override,
       margin: override.margin ? { ...base.margin, ...override.margin } : base.margin,
     };
-  }
+  };
 
-  static createFromAttributes(element: HTMLElement): Partial<ChartConfig> {
+  const createFromAttributes = (element: HTMLElement): Partial<ChartConfig> => {
     const config: Partial<ChartConfig> = {};
 
     const isStatic = element.getAttribute("is-static");
@@ -104,5 +114,12 @@ export class ConfigurationManager {
     }
 
     return config;
-  }
-}
+  };
+
+  return {
+    getDefaultConfig,
+    validateConfig,
+    mergeConfigs,
+    createFromAttributes,
+  };
+})();
