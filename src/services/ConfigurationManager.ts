@@ -32,29 +32,23 @@ export class ConfigurationManager {
   }
 
   static validateConfig(config: Partial<ChartConfig>): string[] {
-    const errors: string[] = [];
-
-    if (config.transitionTime !== undefined && (typeof config.transitionTime !== "number" || config.transitionTime < 0)) {
-      errors.push("transitionTime must be a non-negative number");
-    }
-
-    if (config.xTicks !== undefined && (typeof config.xTicks !== "number" || config.xTicks < 0)) {
-      errors.push("xTicks must be a non-negative number");
-    }
-
-    if (config.yTicks !== undefined && (typeof config.yTicks !== "number" || config.yTicks < 0)) {
-      errors.push("yTicks must be a non-negative number");
-    }
-
-    if (config.isCurved !== undefined && typeof config.isCurved !== "boolean") {
-      errors.push("isCurved must be a boolean");
-    }
-
-    if (config.isStatic !== undefined && typeof config.isStatic !== "boolean") {
-      errors.push("isStatic must be a boolean");
-    }
-
-    return errors;
+    return [
+      ...(config.transitionTime !== undefined && (typeof config.transitionTime !== "number" || config.transitionTime < 0)
+        ? ["transitionTime must be a non-negative number"]
+        : []),
+      ...(config.xTicks !== undefined && (typeof config.xTicks !== "number" || config.xTicks < 0)
+        ? ["xTicks must be a non-negative number"]
+        : []),
+      ...(config.yTicks !== undefined && (typeof config.yTicks !== "number" || config.yTicks < 0)
+        ? ["yTicks must be a non-negative number"]
+        : []),
+      ...(config.isCurved !== undefined && typeof config.isCurved !== "boolean"
+        ? ["isCurved must be a boolean"]
+        : []),
+      ...(config.isStatic !== undefined && typeof config.isStatic !== "boolean"
+        ? ["isStatic must be a boolean"]
+        : []),
+    ];
   }
 
   static mergeConfigs(base: ChartConfig, override: Partial<ChartConfig>): ChartConfig {
