@@ -3,6 +3,10 @@ import type { Selection, ScaleOrdinal } from "d3";
 import type { LineVizSeriesConfig, ChartDataRow, MarginConfig } from "./types";
 import type { TipVizTooltip } from "tipviz";
 
+import { DataService, ConfigurationManager } from "./services";
+
+const defaultConfig = ConfigurationManager.getDefaultConfig();
+
 /**
  * @module d3-line-viz
  * @description
@@ -17,24 +21,24 @@ import type { TipVizTooltip } from "tipviz";
  * @returns {Function} A function that can be called with a D3 selection to render the chart.
  */
 export const createLineVizChart = () => {
-  // Centralized default values
-  const defaultConfig = {
-    transitionTime: 0,
-    xTicks: 5,
-    yTicks: 5,
-    margin: {
-      top: 30,
-      right: 40,
-      bottom: 30,
-      left: 40,
-    } as MarginConfig,
-    formatXAxis: ".2f",
-    formatYAxis: ".2f",
-    yAxisLabel: "",
-    xAxisLabel: "",
-    isCurved: false,
-    isStatic: false,
-  };
+  // // Centralized default values
+  // const defaultConfig = {
+  //   transitionTime: 0,
+  //   xTicks: 5,
+  //   yTicks: 5,
+  //   margin: {
+  //     top: 30,
+  //     right: 40,
+  //     bottom: 30,
+  //     left: 40,
+  //   } as MarginConfig,
+  //   formatXAxis: ".2f",
+  //   formatYAxis: ".2f",
+  //   yAxisLabel: "",
+  //   xAxisLabel: "",
+  //   isCurved: false,
+  //   isStatic: false,
+  // };
 
   let tooltip: TipVizTooltip;
   let series: LineVizSeriesConfig[];
@@ -718,17 +722,25 @@ export const createLineVizChart = () => {
       return;
     }
 
-    const xVals = data.map(xSerie);
-    const [xMin, xMax] = d3.extent(xVals);
-    if (!(typeof xMin === "number" && typeof xMax === "number")) {
+    // const xVals = data.map(xSerie);
+    // const [xMin, xMax] = d3.extent(xVals);
+    // if (!(typeof xMin === "number" && typeof xMax === "number")) {
+    //   console.warn(
+    //     "[d3-line-viz] xSerie must return numbers for all data points."
+    //   );
+    //   return;
+    // }
+    const xDomain = DataService.getDataDomain(data, xSerie);
+    if (!xDomain) {
       console.warn(
         "[d3-line-viz] xSerie must return numbers for all data points."
       );
       return;
     }
+
     xScale = d3
       .scaleLinear()
-      .domain([xMin, xMax])
+      .domain(xDomain)
       .range([margin.left, innerWidth + margin.left])
       .nice();
 
@@ -737,21 +749,33 @@ export const createLineVizChart = () => {
       originalXDomain = xScale.domain() as [number, number];
     }
 
-    // Y scale (all series)
-    const yVals = data.flatMap((d: ChartDataRow) =>
-      series.map(({ accessor }: LineVizSeriesConfig) => accessor(d))
-    );
+    // // Y scale (all series)
+    // const yVals = data.flatMap((d: ChartDataRow) =>
+    //   series.map(({ accessor }: LineVizSeriesConfig) => accessor(d))
+    // );
 
-    const [yMin, yMax] = d3.extent(yVals);
-    if (!(typeof yMin === "number" && typeof yMax === "number")) {
+    // const [yMin, yMax] = d3.extent(yVals);
+    // if (!(typeof yMin === "number" && typeof yMax === "number")) {
+    //   console.warn(
+    //     "[d3-line-viz] Series accessors must return numbers for all data points."
+    //   );
+    //   return;
+    // }
+    const yMinAndMaxPerSeries = series
+      .map(({ accessor }) => DataService.getDataDomain(data, accessor))
+      .filter(Boolean as any)
+      .flat() as number[];
+
+    if (!yMinAndMaxPerSeries.length) {
       console.warn(
         "[d3-line-viz] Series accessors must return numbers for all data points."
       );
       return;
     }
+
     yScale = d3
       .scaleLinear()
-      .domain([yMin, yMax])
+      .domain(d3.extent(yMinAndMaxPerSeries) as [number, number])
       .range([innerHeight + margin.top, margin.top])
       .nice();
 

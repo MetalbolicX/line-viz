@@ -35,7 +35,7 @@ const createDataService = () => {
     const values = data
       .map(accessor)
       .filter((value) => typeof value === "number" && !isNaN(value));
-    if (values.length === 0) return null;
+    if (!values.length) return null;
 
     return [Math.min(...values), Math.max(...values)];
   };
@@ -48,4 +48,4 @@ const createDataService = () => {
   };
 };
 
-export const dataService = createDataService();
+export const DataService = createDataService();
