@@ -3,7 +3,7 @@ import type { Selection, ScaleOrdinal } from "d3";
 import type { LineVizSeriesConfig, ChartDataRow, MarginConfig } from "./types";
 import type { TipVizTooltip } from "tipviz";
 
-import { DataService, ConfigurationManager } from "./services";
+import { DataService, ConfigurationManager, ChartFrame } from "./services";
 
 const defaultConfig = ConfigurationManager.getDefaultConfig();
 
@@ -53,8 +53,6 @@ export const createLineVizChart = () => {
   let formatXAxis: string = defaultConfig.formatXAxis;
   let formatYAxis: string = defaultConfig.formatYAxis;
   let xSerie: (d: ChartDataRow) => number;
-  let innerWidth: number = 0;
-  let innerHeight: number = 0;
   let xScale: d3.ScaleLinear<number, number>;
   let yScale: d3.ScaleLinear<number, number>;
   let yAxisLabel: string = defaultConfig.yAxisLabel;
@@ -65,21 +63,6 @@ export const createLineVizChart = () => {
   let originalXDomain: [number, number] | null = null;
   let isZoomed: boolean = false;
   let idleTimeout: any = null;
-
-  /**
-   * Utility function to get the size of the SVG element.
-   * @description
-   * It retrieves the width and height of the SVG element from its bounding client rectangle.
-   * @param {Selection<SVGElement, unknown, null, undefined>} selection - The D3 selection of the SVG element.
-   * @returns {Object} An object containing the width and height of the SVG element.
-   */
-  const getSize = (
-    selection: Selection<SVGElement, unknown, null, undefined>
-  ) => {
-    const { width = 0, height = 0 } =
-      selection.node()?.getBoundingClientRect() || {};
-    return { width, height };
-  };
 
   /**
    * Resets the idle timeout to null.
@@ -708,28 +691,13 @@ export const createLineVizChart = () => {
       return;
     }
 
-    const { width, height } = getSize(selection);
-    if (!(width && height)) {
+    const svgFrame = new ChartFrame(selection.node() as SVGElement, margin);
+    if (!svgFrame.isValidFrame) {
       console.warn("[d3-line-viz] SVG element has invalid width or height.");
       return;
     }
+    selection.attr("viewBox", `0 0 ${svgFrame.width} ${svgFrame.height}`);
 
-    selection.attr("viewBox", `0 0 ${width} ${height}`);
-    innerWidth = width - (margin.left + margin.right);
-    innerHeight = height - (margin.top + margin.bottom);
-    if (innerWidth <= 0 || innerHeight <= 0) {
-      console.warn("[d3-line-viz] SVG element has non-positive dimensions.");
-      return;
-    }
-
-    // const xVals = data.map(xSerie);
-    // const [xMin, xMax] = d3.extent(xVals);
-    // if (!(typeof xMin === "number" && typeof xMax === "number")) {
-    //   console.warn(
-    //     "[d3-line-viz] xSerie must return numbers for all data points."
-    //   );
-    //   return;
-    // }
     const xDomain = DataService.getDataDomain(data, [xSerie]);
     if (!xDomain) {
       console.warn(
@@ -741,7 +709,7 @@ export const createLineVizChart = () => {
     xScale = d3
       .scaleLinear()
       .domain(xDomain)
-      .range([margin.left, innerWidth + margin.left])
+      .range(svgFrame.innerXRange)
       .nice();
 
     // Store the original domain for reset functionality
@@ -749,18 +717,6 @@ export const createLineVizChart = () => {
       originalXDomain = xScale.domain() as [number, number];
     }
 
-    // // Y scale (all series)
-    // const yVals = data.flatMap((d: ChartDataRow) =>
-    //   series.map(({ accessor }: LineVizSeriesConfig) => accessor(d))
-    // );
-
-    // const [yMin, yMax] = d3.extent(yVals);
-    // if (!(typeof yMin === "number" && typeof yMax === "number")) {
-    //   console.warn(
-    //     "[d3-line-viz] Series accessors must return numbers for all data points."
-    //   );
-    //   return;
-    // }
     const yDomain = DataService.getDataDomain(
       data,
       series.map(({ accessor }) => accessor)
@@ -775,7 +731,7 @@ export const createLineVizChart = () => {
     yScale = d3
       .scaleLinear()
       .domain(yDomain)
-      .range([innerHeight + margin.top, margin.top])
+      .range(svgFrame.innerYRange)
       .nice();
 
     selection
