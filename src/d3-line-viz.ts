@@ -730,7 +730,7 @@ export const createLineVizChart = () => {
     //   );
     //   return;
     // }
-    const xDomain = DataService.getDataDomain(data, xSerie);
+    const xDomain = DataService.getDataDomain(data, [xSerie]);
     if (!xDomain) {
       console.warn(
         "[d3-line-viz] xSerie must return numbers for all data points."
@@ -761,12 +761,11 @@ export const createLineVizChart = () => {
     //   );
     //   return;
     // }
-    const yMinAndMaxPerSeries = series
-      .map(({ accessor }) => DataService.getDataDomain(data, accessor))
-      .filter(Boolean as any)
-      .flat() as number[];
-
-    if (!yMinAndMaxPerSeries.length) {
+    const yDomain = DataService.getDataDomain(
+      data,
+      series.map(({ accessor }) => accessor)
+    );
+    if (!yDomain) {
       console.warn(
         "[d3-line-viz] Series accessors must return numbers for all data points."
       );
@@ -775,7 +774,7 @@ export const createLineVizChart = () => {
 
     yScale = d3
       .scaleLinear()
-      .domain(d3.extent(yMinAndMaxPerSeries) as [number, number])
+      .domain(yDomain)
       .range([innerHeight + margin.top, margin.top])
       .nice();
 

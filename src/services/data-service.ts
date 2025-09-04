@@ -28,12 +28,12 @@ const createDataService = () => {
 
   const getDataDomain = (
     data: ChartDataRow[],
-    accessor: (d: ChartDataRow) => number
+    accessors: ((d: ChartDataRow) => number)[]
   ): [number, number] | null => {
-    if (!validateDataSet(data)) return null;
+    if (!validateDataSet(data) || !accessors.length) return null;
 
-    const values = data
-      .map(accessor)
+    const values = accessors
+      .flatMap((accessor) => data.map((d) => accessor(d)))
       .filter((value) => typeof value === "number" && !isNaN(value));
     if (!values.length) return null;
 
