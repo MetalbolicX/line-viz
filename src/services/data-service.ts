@@ -32,9 +32,10 @@ const createDataService = () => {
   ): [number, number] | null => {
     if (!validateDataSet(data) || !accessors.length) return null;
 
-    const values = accessors
+    const values = Iterator.from(accessors)
       .flatMap((accessor) => data.map((d) => accessor(d)))
-      .filter((value) => typeof value === "number" && !isNaN(value));
+      .filter((value) => typeof value === "number" && !isNaN(value))
+      .toArray();
     if (!values.length) return null;
 
     return [Math.min(...values), Math.max(...values)];

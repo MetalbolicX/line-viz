@@ -21,25 +21,6 @@ const defaultConfig = ConfigurationManager.getDefaultConfig();
  * @returns {Function} A function that can be called with a D3 selection to render the chart.
  */
 export const createLineVizChart = () => {
-  // // Centralized default values
-  // const defaultConfig = {
-  //   transitionTime: 0,
-  //   xTicks: 5,
-  //   yTicks: 5,
-  //   margin: {
-  //     top: 30,
-  //     right: 40,
-  //     bottom: 30,
-  //     left: 40,
-  //   } as MarginConfig,
-  //   formatXAxis: ".2f",
-  //   formatYAxis: ".2f",
-  //   yAxisLabel: "",
-  //   xAxisLabel: "",
-  //   isCurved: false,
-  //   isStatic: false,
-  // };
-
   let tooltip: TipVizTooltip;
   let series: LineVizSeriesConfig[];
   let data: ChartDataRow[];
