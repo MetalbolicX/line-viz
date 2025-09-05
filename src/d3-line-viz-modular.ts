@@ -5,12 +5,12 @@ import type { TipVizTooltip } from "tipviz";
 import type { ChartContext } from "./context/ChartContext";
 import { ConfigurationManager } from "./services/configuration-manager";
 import { DataService } from "./services/data-service";
-import { renderXAxis, renderYAxis, renderXAxisLabel, renderYAxisLabel } from "./renderers/AxisRenderer";
-import { renderXGrid, renderYGrid } from "./renderers/GridRenderer";
-import { renderSeries } from "./renderers/SeriesRenderer";
-import { renderLegend } from "./renderers/LegendRenderer";
-import { setupCursorEvents } from "./renderers/CursorRenderer";
-import { setupBrush, resetZoom as resetZoomBrush } from "./renderers/BrushRenderer";
+import { renderXAxis, renderYAxis, renderXAxisLabel, renderYAxisLabel } from "./renderers/axes-render";
+import { renderXGrid, renderYGrid } from "./renderers/grid-render";
+import { renderSeries } from "./renderers/series-render";
+import { renderLegend } from "./renderers/legend-render";
+import { setupCursorEvents } from "./renderers/cursor-render";
+import { setupBrush, resetZoom as resetZoomBrush } from "./renderers/brush-render";
 import { getSize, calculateInnerDimensions, validateSetup } from "./utils/ChartUtils";
 
 /**

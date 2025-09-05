@@ -9,15 +9,16 @@ import {
   renderYAxis,
   renderXAxisLabel,
   renderYAxisLabel,
-} from "./renderers/AxisRenderer";
-import { renderXGrid, renderYGrid } from "./renderers/GridRenderer";
-import { renderSeries } from "./renderers/SeriesRenderer";
-import { renderLegend } from "./renderers/LegendRenderer";
-import { setupCursorEvents } from "./renderers/CursorRenderer";
+  renderSeries,
+  renderLegend,
+  renderXGrid,
+  renderYGrid,
+} from "./renderers";
+import { setupCursorEvents } from "./renderers/cursor-render";
 import {
   setupBrush,
   resetZoom as resetZoomBrush,
-} from "./renderers/BrushRenderer";
+} from "./renderers/brush-render";
 import { validateSetup } from "./utils/ChartUtils";
 
 /**
@@ -80,25 +81,6 @@ export const createLineVizChart = () => {
       return;
     }
 
-    // const { width, height } = getSize(selection);
-    // if (!(width && height)) {
-    //   console.warn("[d3-line-viz] SVG element has invalid width or height.");
-    //   return;
-    // }
-
-    // // Calculate inner dimensions
-    // const { innerWidth, innerHeight } = calculateInnerDimensions(width, height, ctx.margin!);
-    // if (innerWidth <= 0 || innerHeight <= 0) {
-    //   console.warn("[d3-line-viz] SVG element has non-positive dimensions.");
-    //   return;
-    // }
-    // // const chartDimensions = new ChartDimensions(selection.node() as SVGElement, ctx.margin!);
-
-    // // Update context with calculated values
-    // ctx.selection = selection;
-    // ctx.innerWidth = innerWidth;
-    // ctx.innerHeight = innerHeight;
-
     // selection.attr("viewBox", `0 0 ${width} ${height}`);
     const dimensions = new ChartDimensions(
       selection.node() as SVGElement,
@@ -110,7 +92,6 @@ export const createLineVizChart = () => {
     }
 
     const { innerWidth, innerHeight } = dimensions;
-
     // Update context with calculated values
     ctx.selection = selection;
     ctx.innerWidth = innerWidth;

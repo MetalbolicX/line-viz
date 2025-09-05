@@ -1,4 +1,4 @@
-import type { ChartContext, ChartDimensions } from "../context/ChartContext";
+import type { ChartContext } from "../context/ChartContext";
 
 /**
  * Validates that the chart setup is correct.
