@@ -1,65 +1,46 @@
 import * as d3 from "d3";
-import type { Selection, ScaleLinear } from "d3";
-import { LineVizSeriesConfig } from "../types";
+import type { ChartContext } from "../context/ChartContext";
 
-interface RenderSeriesParams {
-  series: LineVizSeriesConfig[];
-  data: any[];
-  xSerie: (row: any) => number;
-  xScale: ScaleLinear<number, number>;
-  yScale: ScaleLinear<number, number>;
-  margin: { top: number; left: number };
-  isCurved: boolean;
-  transitionTime: number;
-  color: string;
-  colorScale: (label: string) => string;
-}
-
-export const renderSeries = (
-  selection: Selection<SVGSVGElement, unknown, null, undefined>,
-  {
-    series,
-    data,
-    xSerie,
-    xScale,
-    yScale,
-    margin,
-    isCurved,
-    transitionTime,
-    colorScale,
-  }: RenderSeriesParams
-) => {
-  if (!(series?.length && data?.length)) return;
+/**
+ * Renders the series lines on the chart.
+ */
+export const renderSeries = (ctx: ChartContext): void => {
+  if (!(ctx.series?.length && ctx.data?.length)) return;
 
   const line = d3
     .line<{ x: number | Date; y: number }>()
-    .x(({ x }) => xScale(x) - margin.left)
-    .y(({ y }) => yScale(y) - margin.top);
-  isCurved && line.curve(d3.curveCatmullRom);
+    .x(({ x }) => ctx.xScale(x) - ctx.margin.left)
+    .y(({ y }) => ctx.yScale(y) - ctx.margin.top);
 
-  const seriesGroup = selection
+  if (ctx.isCurved) {
+    line.curve(d3.curveCatmullRom);
+  }
+
+  // Create a group for all series
+  const seriesGroup = ctx.selection
     .selectAll(".series")
     .data([null])
     .join("g")
     .attr("class", "series")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`)
+    .attr("transform", `translate(${ctx.margin.left}, ${ctx.margin.top})`)
     .attr("clip-path", "url(#clip)");
 
+  // For each series, create a group and a single path inside it
   const group = seriesGroup
-    .selectAll<SVGGElement, LineVizSeriesConfig>(".series-group")
-    .data(series)
+    .selectAll<SVGGElement, any>(".series-group")
+    .data(ctx.series)
     .join("g")
     .attr("class", "series-group")
     .attr("data-label", ({ label }) => label);
 
   group
-    .selectAll<SVGPathElement, LineVizSeriesConfig>("path.serie")
+    .selectAll<SVGPathElement, any>("path.serie")
     .data(({ label, accessor, color }) => [
       {
         label,
-        color: color || colorScale(label),
-        coordinates: data.map((row) => ({
-          x: xSerie(row),
+        color: color || ctx.colorScale(label),
+        coordinates: ctx.data.map((row) => ({
+          x: ctx.xSerie(row),
           y: accessor(row),
         })),
       },
@@ -79,18 +60,19 @@ export const renderSeries = (
               .attr("stroke-dasharray", totalLength)
               .attr("stroke-dashoffset", totalLength)
               .transition()
-              .duration(transitionTime)
+              .duration(ctx.transitionTime)
               .attr("stroke-dashoffset", 0);
           }),
       (update) =>
         update
           .each(function () {
+            // clear stroke-dash settings that were added by the enter animation
             d3.select(this)
               .attr("stroke-dasharray", null)
               .attr("stroke-dashoffset", null);
           })
           .transition()
-          .duration(transitionTime)
+          .duration(ctx.transitionTime)
           .style("stroke", ({ color }) => color)
           .attr("d", ({ coordinates }) => line(coordinates)),
       (exit) => exit.remove()
