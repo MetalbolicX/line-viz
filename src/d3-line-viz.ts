@@ -3,15 +3,22 @@ import type { Selection, ScaleOrdinal } from "d3";
 import type { LineVizSeriesConfig, ChartDataRow, MarginConfig } from "./types";
 import type { TipVizTooltip } from "tipviz";
 import type { ChartContext } from "./context/ChartContext";
-import { ConfigurationManager } from "./services/configuration-manager";
-import { DataService } from "./services/data-service";
-import { renderXAxis, renderYAxis, renderXAxisLabel, renderYAxisLabel } from "./renderers/AxisRenderer";
+import { ConfigurationManager, DataService, ChartDimensions } from "./services";
+import {
+  renderXAxis,
+  renderYAxis,
+  renderXAxisLabel,
+  renderYAxisLabel,
+} from "./renderers/AxisRenderer";
 import { renderXGrid, renderYGrid } from "./renderers/GridRenderer";
 import { renderSeries } from "./renderers/SeriesRenderer";
 import { renderLegend } from "./renderers/LegendRenderer";
 import { setupCursorEvents } from "./renderers/CursorRenderer";
-import { setupBrush, resetZoom as resetZoomBrush } from "./renderers/BrushRenderer";
-import { getSize, calculateInnerDimensions, validateSetup } from "./utils/ChartUtils";
+import {
+  setupBrush,
+  resetZoom as resetZoomBrush,
+} from "./renderers/BrushRenderer";
+import { validateSetup } from "./utils/ChartUtils";
 
 /**
  * @module d3-line-viz
@@ -65,36 +72,56 @@ export const createLineVizChart = () => {
   /**
    * The main chart function that renders the line visualization.
    */
-  const chart = (selection: Selection<SVGElement, unknown, null, undefined>) => {
+  const chart = (
+    selection: Selection<SVGElement, unknown, null, undefined>
+  ) => {
     if (!validateSetup(ctx)) {
       console.warn("[d3-line-viz] Chart setup is invalid.");
       return;
     }
 
-    const { width, height } = getSize(selection);
-    if (!(width && height)) {
+    // const { width, height } = getSize(selection);
+    // if (!(width && height)) {
+    //   console.warn("[d3-line-viz] SVG element has invalid width or height.");
+    //   return;
+    // }
+
+    // // Calculate inner dimensions
+    // const { innerWidth, innerHeight } = calculateInnerDimensions(width, height, ctx.margin!);
+    // if (innerWidth <= 0 || innerHeight <= 0) {
+    //   console.warn("[d3-line-viz] SVG element has non-positive dimensions.");
+    //   return;
+    // }
+    // // const chartDimensions = new ChartDimensions(selection.node() as SVGElement, ctx.margin!);
+
+    // // Update context with calculated values
+    // ctx.selection = selection;
+    // ctx.innerWidth = innerWidth;
+    // ctx.innerHeight = innerHeight;
+
+    // selection.attr("viewBox", `0 0 ${width} ${height}`);
+    const dimensions = new ChartDimensions(
+      selection.node() as SVGElement,
+      ctx.margin!
+    );
+    if (!dimensions.areValidDimensions) {
       console.warn("[d3-line-viz] SVG element has invalid width or height.");
       return;
     }
 
-    // Calculate inner dimensions
-    const { innerWidth, innerHeight } = calculateInnerDimensions(width, height, ctx.margin!);
-    if (innerWidth <= 0 || innerHeight <= 0) {
-      console.warn("[d3-line-viz] SVG element has non-positive dimensions.");
-      return;
-    }
+    const { innerWidth, innerHeight } = dimensions;
 
     // Update context with calculated values
     ctx.selection = selection;
     ctx.innerWidth = innerWidth;
     ctx.innerHeight = innerHeight;
 
-    selection.attr("viewBox", `0 0 ${width} ${height}`);
-
     // Calculate X scale domain
     const xDomain = DataService.getDataDomain(ctx.data!, [ctx.xSerie!]);
     if (!xDomain) {
-      console.warn("[d3-line-viz] xSerie must return numbers for all data points.");
+      console.warn(
+        "[d3-line-viz] xSerie must return numbers for all data points."
+      );
       return;
     }
 
@@ -115,7 +142,9 @@ export const createLineVizChart = () => {
       ctx.series!.map(({ accessor }) => accessor)
     );
     if (!yDomain) {
-      console.warn("[d3-line-viz] Series accessors must return numbers for all data points.");
+      console.warn(
+        "[d3-line-viz] Series accessors must return numbers for all data points."
+      );
       return;
     }
 

@@ -43,10 +43,3 @@ export interface ChartContext {
   isZoomed?: boolean;
   idleTimeout?: any;
 }
-
-export interface ChartDimensions {
-  width: number;
-  height: number;
-  innerWidth: number;
-  innerHeight: number;
-}

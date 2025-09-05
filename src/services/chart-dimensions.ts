@@ -3,7 +3,7 @@ import { MarginConfig } from "../types";
 /**
  * Manages the dimensions and margins of an SVG container for chart rendering.
  */
-export class ChartFrame {
+export class ChartDimensions {
   #margin: MarginConfig;
   #height: number;
   #width: number;
@@ -68,7 +68,7 @@ export class ChartFrame {
   /**
    * Indicates whether the chart area has valid dimensions (greater than zero).
    */
-  public get isValidFrame(): boolean {
+  public get areValidDimensions(): boolean {
     return this.innerWidth > 0 && this.innerHeight > 0;
   }
 
