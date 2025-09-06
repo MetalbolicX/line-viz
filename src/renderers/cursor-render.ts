@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import type { ChartContext } from "../context/ChartContext";
+import type { ChartContext } from "../context/chart-context";
 import type { ChartDataRow } from "../types";
 
 /**

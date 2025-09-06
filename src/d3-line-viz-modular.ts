@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import type { Selection, ScaleOrdinal } from "d3";
 import type { LineVizSeriesConfig, ChartDataRow, MarginConfig } from "./types";
 import type { TipVizTooltip } from "tipviz";
-import type { ChartContext } from "./context/ChartContext";
+import type { ChartContext } from "./context/chart-context";
 import { ConfigurationManager } from "./services/configuration-manager";
 import { DataService } from "./services/data-service";
 import { renderXAxis, renderYAxis, renderXAxisLabel, renderYAxisLabel } from "./renderers/axes-render";

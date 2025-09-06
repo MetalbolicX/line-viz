@@ -1,1 +1,1 @@
-export * from "./ChartContext";
+export * from "./chart-context";

@@ -1,4 +1,4 @@
-import type { ChartContext } from "../context/ChartContext";
+import type { ChartContext } from "../context/chart-context";
 
 /**
  * Renders the legend on the chart.
