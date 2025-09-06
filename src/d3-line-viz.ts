@@ -109,7 +109,7 @@ export const createLineVizChart = () => {
     ctx.xScale = d3
       .scaleLinear()
       .domain(xDomain)
-      .range([ctx.margin!.left, innerWidth + ctx.margin!.left])
+      .range(dimensions.innerXRange)
       .nice();
 
     // Store the original domain for reset functionality
@@ -132,7 +132,7 @@ export const createLineVizChart = () => {
     ctx.yScale = d3
       .scaleLinear()
       .domain(yDomain)
-      .range([innerHeight + ctx.margin!.top, ctx.margin!.top])
+      .range(dimensions.innerYRange)
       .nice();
 
     // Render all chart components
