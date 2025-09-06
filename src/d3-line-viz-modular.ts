@@ -11,7 +11,7 @@ import { renderSeries } from "./renderers/series-render";
 import { renderLegend } from "./renderers/legend-render";
 import { setupCursorEvents } from "./renderers/cursor-render";
 import { setupBrush, resetZoom as resetZoomBrush } from "./renderers/brush-render";
-import { getSize, calculateInnerDimensions, validateSetup } from "./utils/ChartUtils";
+import { getSize, calculateInnerDimensions, validateSetup } from "./utils/chart-utils";
 
 /**
  * @module d3-line-viz

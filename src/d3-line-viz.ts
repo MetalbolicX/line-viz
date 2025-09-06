@@ -19,7 +19,7 @@ import {
   setupBrush,
   resetZoom as resetZoomBrush,
 } from "./renderers/brush-render";
-import { validateSetup } from "./utils/ChartUtils";
+import { validateSetup } from "./utils/chart-utils";
 
 /**
  * @module d3-line-viz
