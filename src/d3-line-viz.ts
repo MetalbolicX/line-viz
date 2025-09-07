@@ -1,8 +1,12 @@
 import * as d3 from "d3";
 import type { Selection, ScaleOrdinal } from "d3";
-import type { LineVizSeriesConfig, ChartDataRow, MarginConfig } from "./types";
+import type {
+  LineVizSeriesConfig,
+  ChartDataRow,
+  MarginConfig,
+  ChartContext,
+} from "./types";
 import type { TipVizTooltip } from "tipviz";
-import type { ChartContext } from "./types/chart-context";
 import { ConfigurationManager, DataService, ChartDimensions } from "./services";
 import {
   renderXAxis,
@@ -13,13 +17,11 @@ import {
   renderLegend,
   renderXGrid,
   renderYGrid,
-} from "./renderers";
-import { setupCursorEvents } from "./renderers/cursor-render";
-import {
+  setupCursorEvents,
   setupBrush,
   resetZoom as resetZoomBrush,
-} from "./renderers/brush-render";
-import { validateSetup } from "./utils/chart-utils";
+} from "./renderers";
+import { validateSetup } from "./utils";
 
 /**
  * @module d3-line-viz
