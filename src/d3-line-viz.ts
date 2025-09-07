@@ -1,12 +1,4 @@
 import * as d3 from "d3";
-import type { Selection, ScaleOrdinal } from "d3";
-import type {
-  LineVizSeriesConfig,
-  ChartDataRow,
-  MarginConfig,
-  ChartContext,
-} from "./types";
-import type { TipVizTooltip } from "tipviz";
 import { ConfigurationManager, DataService, ChartDimensions } from "./services";
 import {
   renderXAxis,
@@ -21,7 +13,16 @@ import {
   setupBrush,
   resetZoom as resetZoomBrush,
 } from "./renderers";
+
 import { validateSetup } from "./utils";
+import type { Selection, ScaleOrdinal } from "d3";
+import type {
+  LineVizSeriesConfig,
+  ChartDataRow,
+  MarginConfig,
+  ChartContext,
+} from "./types";
+import type { TipVizTooltip } from "tipviz";
 
 /**
  * @module d3-line-viz
