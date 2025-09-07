@@ -25,3 +25,13 @@ src/
 ├── line-viz.ts       # Chart web component definition
 ├── index.ts          # Main module entry point of the package
 ```
+
+## Development Decisions
+
+### d3-line-viz.ts
+
+The `d3-line-viz.ts` module is a a factory function `createLineVizChart` thet uses the builder pattern to allow method chaining for configuration. It initializes a context object (`ChartContext`) that holds all the necessary state and configuration for rendering a D3.js line chart.
+
+The `ChartContext` object is passed to each rendering function to seperate state and logic.in separate modules.
+
+The `d3-line-viz.ts` needs to initialize the context object with default values and provide methods to update the configuration. So in the `services/` folder, there are modules like `ConfigurationManager`, `DataService`, and `ChartDimensions` that encapsulate specific logic related to configuration management, data processing, and SVG dimension handling.
