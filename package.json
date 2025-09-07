@@ -17,6 +17,7 @@
     }
   },
   "scripts": {
+    "docs": "docsify serve docs",
     "dev": "vite",
     "build": "tsdown"
   },
