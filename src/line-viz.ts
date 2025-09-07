@@ -6,25 +6,26 @@ import type {
   MarginConfig,
 } from "./types";
 import { createLineVizChart } from "./d3-line-viz";
+import { ChartEventEmitter } from "./events/ChartEventEmitter";
+import { DataService, ConfigurationManager } from "./services";
+import type { ChartConfig } from "./services/configuration-manager";
 import "tipviz";
 import { TipVizTooltip } from "tipviz";
 
 export class LineViz extends HTMLElement {
-  private declare isStatic: boolean;
-  private declare transitionTime: number;
-  private declare isCurved: boolean;
-  private declare margin: MarginConfig;
-  private declare xTicks: number;
-  private declare yTicks: number;
-  private declare formatXAxis: string;
-  private declare formatYAxis: string;
-  private declare yAxisLabel: string;
-  private declare xAxisLabel: string;
+  // Event emitter for chart communication
+  #eventEmitter = new ChartEventEmitter();
 
+  // Configuration management
+  #chartConfig: ChartConfig;
+
+  // Chart state
   private declare _config: LineVizConfig;
   private declare _data: ChartDataRow[];
   private declare _selectedSeries: string;
   private declare _hiddenSeries: Set<string>;
+
+  // DOM elements
   #svgRef!: SVGElement;
   #colorScale = scaleOrdinal(schemeCategory10);
   private declare _tooltip: TipVizTooltip;
@@ -238,14 +239,11 @@ export class LineViz extends HTMLElement {
   constructor() {
     super();
     this.#shadowRoot = this.attachShadow({ mode: "open" });
-    this.isStatic = false;
-    this.transitionTime = 0;
-    this.isCurved = false;
-    this.margin = { top: 40, right: 80, bottom: 60, left: 60 };
-    this.xTicks = 5;
-    this.yTicks = 5;
-    this.formatXAxis = ".2f";
-    this.formatYAxis = ".2f";
+
+    // Initialize default configuration
+    this.#chartConfig = ConfigurationManager.getDefaultConfig();
+
+    // Initialize chart state
     this._data = [];
     this._selectedSeries = "All";
     this._hiddenSeries = new Set<string>();
@@ -254,16 +252,22 @@ export class LineViz extends HTMLElement {
       xSerie: { accessor: (d: ChartDataRow) => d.x as number },
       ySeries: [],
     };
-    this.yAxisLabel = "";
-    this.xAxisLabel = "";
 
     this.#createDOM();
+    this.#setupEventListeners();
   }
 
   /**
    * Called when the element is connected to the DOM.
    */
   public connectedCallback() {
+    // Parse initial attributes
+    const attributeConfig = ConfigurationManager.createFromAttributes(this);
+    this.#chartConfig = ConfigurationManager.mergeConfigs(
+      this.#chartConfig,
+      attributeConfig
+    );
+
     this.#addEventListeners();
     this.render();
   }
@@ -283,49 +287,24 @@ export class LineViz extends HTMLElement {
    * @returns {void}
    */
   public attributeChangedCallback(
-    name: string,
+    _name: string,
     oldValue: string,
     newValue: string
   ): void {
     if (oldValue === newValue) {
       return;
     }
-    switch (name) {
-      case "is-static":
-        this.isStatic = newValue !== null;
-        break;
-      case "transition-time":
-        this.transitionTime = Number(newValue);
-        break;
-      case "is-curved":
-        this.isCurved = newValue !== null;
-        break;
-      case "margin":
-        try {
-          this.margin = JSON.parse(newValue);
-        } catch (e) {
-          console.error("Failed to parse margin attribute:", e);
-        }
-        break;
-      case "x-ticks":
-        this.xTicks = Number(newValue);
-        break;
-      case "y-ticks":
-        this.yTicks = Number(newValue);
-        break;
-      case "format-x-axis":
-        this.formatXAxis = newValue;
-        break;
-      case "format-y-axis":
-        this.formatYAxis = newValue;
-        break;
-      case "y-axis-label":
-        this.yAxisLabel = newValue;
-        break;
-      case "x-axis-label":
-        this.xAxisLabel = newValue;
-        break;
-    }
+
+    // Parse attributes and update configuration
+    const attributeConfig = ConfigurationManager.createFromAttributes(this);
+    this.#chartConfig = ConfigurationManager.mergeConfigs(
+      ConfigurationManager.getDefaultConfig(),
+      attributeConfig
+    );
+
+    // Emit configuration change event
+    this.#eventEmitter.emit("config-changed", { config: this.#chartConfig });
+
     this.render();
   }
 
@@ -338,6 +317,12 @@ export class LineViz extends HTMLElement {
     this._selectedSeries = "All";
     this._hiddenSeries = new Set<string>();
 
+    // Emit data change event
+    this.#eventEmitter.emit("data-changed", {
+      data: this._data,
+      timestamp: Date.now(),
+    });
+
     this.render();
   }
 
@@ -345,33 +330,31 @@ export class LineViz extends HTMLElement {
    * Returns the labels for the Y-axis series.
    */
   public get ySeriesLabels(): string[] {
-    if (!this._config?.ySeries?.length) return [];
-    return this._config.ySeries.map(({ label }) => label);
+    // if (!this._config?.ySeries?.length) return [];
+    // return this._config.ySeries.map(({ label }) => label);
+    return !this._config?.ySeries?.length
+      ? []
+      : this._config.ySeries.map(({ label }) => label);
   }
 
   /**
    * Returns the filtered series based on the selected and hidden series.
    */
   public get filteredSeries(): LineVizSeriesConfig[] {
-    if (!this._config?.ySeries?.length) return [];
-    if (this._selectedSeries === "All") {
-      return this._config.ySeries.filter(
-        ({ label }) => !this._hiddenSeries.has(label)
-      );
-    }
-    return this._config.ySeries.filter(
-      ({ label }) =>
-        label === this._selectedSeries && !this._hiddenSeries.has(label)
-    );
+    return !this._config?.ySeries?.length
+      ? []
+      : DataService.selectedSeries(
+          this._config.ySeries,
+          this._selectedSeries,
+          this._hiddenSeries
+        );
   }
 
   /**
    * Returns the filtered data based on the selected series and date range.
    */
   public get filteredData(): ChartDataRow[] {
-    if (!this._data.length) return [];
-
-    return this._data;
+    return !this._data.length ? [] : this._data;
   }
 
   /**
@@ -406,12 +389,77 @@ export class LineViz extends HTMLElement {
   }
 
   /**
+   * Subscribe to chart events.
+   * @param eventType - The type of event to listen for.
+   * @param handler - The event handler function.
+   * @returns {void}
+   */
+  public on<T extends import("./events/ChartEventEmitter").ChartEventType>(
+    eventType: T,
+    handler: (
+      event: CustomEvent<
+        import("./events/ChartEventEmitter").ChartEventData[T] & {
+          timestamp: number;
+        }
+      >
+    ) => void
+  ): void {
+    this.#eventEmitter.on(eventType, handler);
+  }
+
+  /**
+   * Unsubscribe from chart events.
+   * @param eventType - The type of event to stop listening for.
+   * @param handler - The event handler function to remove.
+   * @returns {void}
+   */
+  public off<T extends import("./events/ChartEventEmitter").ChartEventType>(
+    eventType: T,
+    handler: (
+      event: CustomEvent<
+        import("./events/ChartEventEmitter").ChartEventData[T] & {
+          timestamp: number;
+        }
+      >
+    ) => void
+  ): void {
+    this.#eventEmitter.off(eventType, handler);
+  }
+
+  /**
+   * Subscribe to a chart event that will only fire once.
+   * @param eventType - The type of event to listen for.
+   * @param handler - The event handler function.
+   * @returns {void}
+   */
+  public once<T extends import("./events/ChartEventEmitter").ChartEventType>(
+    eventType: T,
+    handler: (
+      event: CustomEvent<
+        import("./events/ChartEventEmitter").ChartEventData[T] & {
+          timestamp: number;
+        }
+      >
+    ) => void
+  ): void {
+    this.#eventEmitter.once(eventType, handler);
+  }
+
+  /**
    * Handles changes to the selected series.
    * @param event The change event.
    */
   #handleSeriesChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
+    const previousSelection = this._selectedSeries;
     this._selectedSeries = target.value;
+
+    // Emit series change event
+    this.#eventEmitter.emit("series-changed", {
+      selectedSeries: this._selectedSeries,
+      hiddenSeries: this._hiddenSeries,
+    });
+
     this.#renderChart();
   };
 
@@ -422,26 +470,33 @@ export class LineViz extends HTMLElement {
   #handleResetZoom = (): void => {
     if (!this.#svgRef) return;
 
+    // Emit interaction events
+    this.#eventEmitter.emit("interaction-start", { type: "reset-zoom" });
+
     const chart = createLineVizChart()
       .colorScale(this.#colorScale)
       .data(this.filteredData)
-      .formatXAxis(this.formatXAxis)
-      .formatYAxis(this.formatYAxis)
-      .isCurved(this.isCurved)
-      .isStatic(this.isStatic)
-      .margin(this.margin)
+      .formatXAxis(this.#chartConfig.formatXAxis)
+      .formatYAxis(this.#chartConfig.formatYAxis)
+      .isCurved(this.#chartConfig.isCurved)
+      .isStatic(this.#chartConfig.isStatic)
+      .margin(this.#chartConfig.margin)
       .series(this.filteredSeries)
       .tooltip(this._tooltip)
-      .transitionTime(this.transitionTime)
-      .xAxisLabel(this.xAxisLabel)
+      .transitionTime(this.#chartConfig.transitionTime)
+      .xAxisLabel(this.#chartConfig.xAxisLabel)
       .xSerie(this._config.xSerie.accessor)
-      .xTicks(this.xTicks)
-      .yAxisLabel(this.yAxisLabel)
-      .yTicks(this.yTicks);
+      .xTicks(this.#chartConfig.xTicks)
+      .yAxisLabel(this.#chartConfig.yAxisLabel)
+      .yTicks(this.#chartConfig.yTicks);
 
     // Reset zoom and re-render
     chart.resetZoom();
     select(this.#svgRef).call(chart);
+
+    // Emit zoom change and interaction end events
+    this.#eventEmitter.emit("zoom-changed", { domain: null, isZoomed: false });
+    this.#eventEmitter.emit("interaction-end", { type: "reset-zoom" });
   };
 
   /**
@@ -451,24 +506,33 @@ export class LineViz extends HTMLElement {
   #renderChart(): void {
     if (!this.#svgRef || !this._data.length || !this._config.ySeries.length)
       return;
+
+    const startTime = performance.now();
+
     const chart = createLineVizChart()
       .colorScale(this.#colorScale)
       .data(this.filteredData)
-      .formatXAxis(this.formatXAxis)
-      .formatYAxis(this.formatYAxis)
-      .isCurved(this.isCurved)
-      .isStatic(this.isStatic)
-      .margin(this.margin)
+      .formatXAxis(this.#chartConfig.formatXAxis)
+      .formatYAxis(this.#chartConfig.formatYAxis)
+      .isCurved(this.#chartConfig.isCurved)
+      .isStatic(this.#chartConfig.isStatic)
+      .margin(this.#chartConfig.margin)
       .series(this.filteredSeries)
       .tooltip(this._tooltip)
-      .transitionTime(this.transitionTime)
-      .xAxisLabel(this.xAxisLabel)
+      .transitionTime(this.#chartConfig.transitionTime)
+      .xAxisLabel(this.#chartConfig.xAxisLabel)
       .xSerie(this._config.xSerie.accessor)
-      .xTicks(this.xTicks)
-      .yAxisLabel(this.yAxisLabel)
-      .yTicks(this.yTicks);
+      .xTicks(this.#chartConfig.xTicks)
+      .yAxisLabel(this.#chartConfig.yAxisLabel)
+      .yTicks(this.#chartConfig.yTicks);
 
     select(this.#svgRef).call(chart);
+
+    // Emit render complete event
+    const endTime = performance.now();
+    this.#eventEmitter.emit("render-complete", {
+      renderTime: endTime - startTime,
+    });
   }
 
   /**
@@ -531,7 +595,38 @@ export class LineViz extends HTMLElement {
   }
 
   /**
-   * Adds event listeners for the component.
+   * Sets up internal event listeners for the chart event emitter.
+   * @returns {void}
+   */
+  #setupEventListeners(): void {
+    // Listen for data changes to update UI
+    this.#eventEmitter.on("data-changed", () => {
+      this.#updateControls();
+    });
+
+    // Listen for series changes to update chart
+    this.#eventEmitter.on("series-changed", () => {
+      this.#updateControls();
+    });
+
+    // Listen for config changes to trigger re-render
+    this.#eventEmitter.on("config-changed", () => {
+      this.render();
+    });
+  }
+
+  /**
+   * Updates the control elements state.
+   * @returns {void}
+   */
+  #updateControls(): void {
+    const hasData = this._data.length > 0 && this._config.ySeries.length > 0;
+    this.#selectElement.disabled = !hasData;
+    this.#resetButton.disabled = !hasData;
+  }
+
+  /**
+   * Adds DOM event listeners for the component.
    * @returns {void}
    */
   #addEventListeners(): void {
@@ -558,7 +653,9 @@ export class LineViz extends HTMLElement {
    */
   public render() {
     const seriesLabels = this.ySeriesLabels;
-    const hasData = this._data.length > 0 && this._config.ySeries.length > 0;
+    const hasData =
+      DataService.validateDataSet(this._data) &&
+      this._config.ySeries.length > 0;
 
     // Update select options
     while (this.#selectElement.firstChild) {
@@ -570,20 +667,20 @@ export class LineViz extends HTMLElement {
     if (this._selectedSeries === "All") {
       allOption.selected = true;
     }
-    const optionElements = seriesLabels.map((label) => {
-      const option = document.createElement("option");
-      option.value = label;
-      option.textContent = label;
-      if (this._selectedSeries === label) {
-        option.selected = true;
-      }
-      return option;
-    });
-    this.#selectElement.append(allOption, ...optionElements);
+    const optionsElements = seriesLabels.map((label) =>
+      this.#fromString(/*html*/ `
+      <option value="${label}" ${
+        this._selectedSeries === label ? "selected" : ""
+      }>
+        ${label}
+      </option>
+    `)
+    );
+
+    this.#selectElement.append(allOption, ...optionsElements);
 
     // Update controls state
-    this.#selectElement.disabled = !hasData;
-    this.#resetButton.disabled = !hasData;
+    this.#updateControls();
 
     this.#renderChart();
   }

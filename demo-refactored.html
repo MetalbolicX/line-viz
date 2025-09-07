@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LineViz Refactored Component Demo</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .demo-section {
+        background: white;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .chart-container {
+        height: 500px;
+        margin: 20px 0;
+      }
+
+      .event-log {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        padding: 15px;
+        height: 200px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+      }
+
+      .event-entry {
+        margin: 2px 0;
+        padding: 2px 0;
+      }
+
+      .event-type {
+        font-weight: bold;
+        color: #007acc;
+      }
+
+      .timestamp {
+        color: #666;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>LineViz Refactored Component Demo</h1>
+
+      <div class="demo-section">
+        <h2>Event-Driven Architecture Demo</h2>
+        <p>
+          This demo shows the new event-driven architecture with service layer
+          integration.
+        </p>
+
+        <div class="chart-container">
+          <line-viz
+            id="event-chart"
+            transition-time="300"
+            is-curved
+            x-ticks="6"
+            y-ticks="5"
+            format-x-axis=".1f"
+            format-y-axis=".2f"
+            x-axis-label="Time"
+            y-axis-label="Temperature (°C)"
+            margin='{"top": 50, "right": 100, "bottom": 60, "left": 80}'
+          >
+            <span slot="chart-title">Real-time Temperature Monitoring</span>
+          </line-viz>
+        </div>
+
+        <h3>Event Log</h3>
+        <div id="event-log" class="event-log">
+          <div class="event-entry">Waiting for events...</div>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>Service Layer Integration</h2>
+        <p>
+          Configuration and data management is now handled by dedicated
+          services.
+        </p>
+
+        <ul>
+          <li>
+            <strong>ConfigurationManager</strong>: Validates and merges chart
+            configuration
+          </li>
+          <li>
+            <strong>DataService</strong>: Handles data filtering and validation
+          </li>
+          <li>
+            <strong>ChartEventEmitter</strong>: Provides event-driven
+            communication
+          </li>
+        </ul>
+      </div>
+
+      <div class="demo-section">
+        <h2>API Examples</h2>
+        <pre><code>// Listen to chart events
+chart.on('data-changed', (event) => {
+  console.log('Data updated:', event.detail);
+});
+
+// Monitor render performance
+chart.on('render-complete', (event) => {
+  console.log(`Render took: ${event.detail.renderTime}ms`);
+});
+
+// Track user interactions
+chart.on('interaction-start', (event) => {
+  console.log(`Interaction started: ${event.detail.type}`);
+});
+
+// One-time event subscription
+chart.once('config-changed', (event) => {
+  console.log('Initial config:', event.detail.config);
+});</code></pre>
+      </div>
+    </div>
+
+    <script type="module">
+      // Import the refactored component
+      import "./src/line-viz.js";
+
+      // Get the chart element
+      const chart = document.getElementById("event-chart");
+      const eventLog = document.getElementById("event-log");
+
+      // Clear initial message
+      eventLog.innerHTML = "";
+
+      // Function to log events
+      function logEvent(eventType, data) {
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = document.createElement("div");
+        entry.className = "event-entry";
+        entry.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span>
+                <span class="event-type">${eventType}</span>:
+                ${JSON.stringify(data, null, 1).replace(/\n\s*/g, " ")}
+            `;
+        eventLog.appendChild(entry);
+        eventLog.scrollTop = eventLog.scrollHeight;
+      }
+
+      // Subscribe to all chart events
+      chart.on("data-changed", (event) => {
+        logEvent("data-changed", {
+          dataLength: event.detail.data.length,
+          timestamp: event.detail.timestamp,
+        });
+      });
+
+      chart.on("series-changed", (event) => {
+        logEvent("series-changed", event.detail);
+      });
+
+      chart.on("zoom-changed", (event) => {
+        logEvent("zoom-changed", event.detail);
+      });
+
+      chart.on("config-changed", (event) => {
+        logEvent("config-changed", {
+          configKeys: Object.keys(event.detail.config),
+          timestamp: event.detail.timestamp,
+        });
+      });
+
+      chart.on("render-complete", (event) => {
+        logEvent("render-complete", {
+          renderTime: `${event.detail.renderTime.toFixed(2)}ms`,
+          timestamp: event.detail.timestamp,
+        });
+      });
+
+      chart.on("interaction-start", (event) => {
+        logEvent("interaction-start", event.detail);
+      });
+
+      chart.on("interaction-end", (event) => {
+        logEvent("interaction-end", event.detail);
+      });
+
+      // Generate sample data
+      function generateSampleData() {
+        const data = [];
+        const baseTemp = 20;
+
+        for (let i = 0; i < 50; i++) {
+          const hour = i * 0.5;
+          const temp1 = baseTemp + Math.sin(hour * 0.5) * 5 + Math.random() * 2;
+          const temp2 = baseTemp + Math.cos(hour * 0.3) * 3 + Math.random() * 2;
+          const temp3 = baseTemp + Math.sin(hour * 0.7) * 4 + Math.random() * 2;
+
+          data.push({
+            x: hour,
+            temperature1: temp1,
+            temperature2: temp2,
+            temperature3: temp3,
+          });
+        }
+
+        return data;
+      }
+
+      // Configure the chart
+      const sampleData = generateSampleData();
+
+      chart.config = {
+        data: sampleData,
+        xSerie: { accessor: (d) => d.x },
+        ySeries: [
+          { label: "Sensor 1", accessor: (d) => d.temperature1 },
+          { label: "Sensor 2", accessor: (d) => d.temperature2 },
+          { label: "Sensor 3", accessor: (d) => d.temperature3 },
+        ],
+      };
+
+      // Simulate real-time data updates
+      let updateCount = 0;
+      setInterval(() => {
+        if (updateCount < 3) {
+          // Only update a few times for demo
+          const newData = generateSampleData();
+          chart.config = {
+            ...chart.config,
+            data: newData,
+          };
+          updateCount++;
+        }
+      }, 5000);
+
+      // Set up tooltip
+      chart.tooltipContent((d, series) => {
+        return `
+                <strong>Time: ${d.x.toFixed(1)}h</strong><br>
+                <strong>${series.label}: ${d.y.toFixed(1)}°C</strong>
+            `;
+      });
+
+      chart.tooltipStyle(`
+            .tooltip {
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+            }
+        `);
+    </script>
+  </body>
+</html>

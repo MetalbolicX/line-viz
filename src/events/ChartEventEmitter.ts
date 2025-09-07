@@ -18,28 +18,28 @@ export interface ChartEventData {
 }
 
 export class ChartEventEmitter extends EventTarget {
-  emit<T extends ChartEventType>(eventType: T, data: ChartEventData[T]): void {
+  public emit<T extends ChartEventType>(eventType: T, data: ChartEventData[T]): void {
     const event = new CustomEvent(eventType, {
       detail: { ...data, timestamp: Date.now() }
     });
     this.dispatchEvent(event);
   }
 
-  on<T extends ChartEventType>(
+  public on<T extends ChartEventType>(
     eventType: T,
     handler: (event: CustomEvent<ChartEventData[T] & { timestamp: number }>) => void
   ): void {
     this.addEventListener(eventType, handler as EventListener);
   }
 
-  off<T extends ChartEventType>(
+  public off<T extends ChartEventType>(
     eventType: T,
     handler: (event: CustomEvent<ChartEventData[T] & { timestamp: number }>) => void
   ): void {
     this.removeEventListener(eventType, handler as EventListener);
   }
 
-  once<T extends ChartEventType>(
+  public once<T extends ChartEventType>(
     eventType: T,
     handler: (event: CustomEvent<ChartEventData[T] & { timestamp: number }>) => void
   ): void {
