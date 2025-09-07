@@ -450,7 +450,7 @@ export class LineViz extends HTMLElement {
    */
   #handleSeriesChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
-    const previousSelection = this._selectedSeries;
+    // const previousSelection = this._selectedSeries;
     this._selectedSeries = target.value;
 
     // Emit series change event
@@ -656,29 +656,27 @@ export class LineViz extends HTMLElement {
       DataService.validateDataSet(this._data) &&
       this._config.ySeries.length > 0;
 
+    if (!hasData) return;
+
     // Update select options
     while (this.#selectElement.firstChild) {
       this.#selectElement.removeChild(this.#selectElement.firstChild);
     }
 
-    const options = this.#fromString(/*html*/ `
-      <option value="All" ${this._selectedSeries === "All" ? "selected" : ""}>
-        All Series
-      </option>
-      ${seriesLabels
-        .map(
-          (label) => /*html*/ `
-      <option value="${label}" ${
-            this._selectedSeries === label ? "selected" : ""
-          }>
-        ${label}
-      </option>
-    `
-        )
-        .join("")}
-    `);
+    const allOptions = document.createElement("option");
+    allOptions.value = "All";
+    allOptions.textContent = "All Series";
+    allOptions.selected = this._selectedSeries === "All";
 
-    this.#selectElement.append(...options.childNodes);
+    const options = seriesLabels.map((label) => {
+      const option = document.createElement("option");
+      option.value = label;
+      option.textContent = label;
+      option.selected = this._selectedSeries === label;
+      return option;
+    });
+
+    this.#selectElement.append(allOptions, ...options);
 
     // Update controls state
     this.#updateControls();
