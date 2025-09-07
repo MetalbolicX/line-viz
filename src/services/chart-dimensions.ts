@@ -72,10 +72,16 @@ export class ChartDimensions {
     return this.innerWidth > 0 && this.innerHeight > 0;
   }
 
+  /**
+   * Gets the total width of the SVG container.
+   */
   public get width(): number {
     return this.#width;
   }
 
+  /**
+   * Gets the total height of the SVG container.
+   */
   public get height(): number {
     return this.#height;
   }

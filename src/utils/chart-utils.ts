@@ -2,6 +2,8 @@ import type { ChartContext } from "../types/chart-context";
 
 /**
  * Validates that the chart setup is correct.
+ * @param ctx - Partial chart context to validate.
+ * @returns True if the setup is valid, false otherwise.
  */
 export const validateSetup = (ctx: Partial<ChartContext>): boolean => {
   if (!ctx.series || !Array.isArray(ctx.series) || !ctx.series.length) {

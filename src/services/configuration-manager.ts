@@ -24,11 +24,23 @@ const DEFAULT_CONFIG: ChartConfig = {
   isStatic: DEFAULT_IS_STATIC,
 };
 
+/**
+ * ConfigurationManager provides methods to manage and validate chart configurations.
+ */
 export const ConfigurationManager = (() => {
+  /**
+   * Gets the default chart configuration.
+   * @returns {ChartConfig} A copy of the default chart configuration.
+   */
   const getDefaultConfig = (): ChartConfig => {
     return { ...DEFAULT_CONFIG };
   };
 
+  /**
+   * Validates the given chart configuration.
+   * @param config - The chart configuration to validate.
+   * @returns An array of validation error messages.
+   */
   const validateConfig = (config: Partial<ChartConfig>): string[] => {
     let errors: string[] = [];
     if (config.transitionTime !== undefined && (typeof config.transitionTime !== "number" || config.transitionTime < 0)) {
@@ -49,6 +61,12 @@ export const ConfigurationManager = (() => {
     return errors;
   };
 
+  /**
+   * Merges the base chart configuration with overrides.
+   * @param base - The base chart configuration.
+   * @param override - The chart configuration overrides.
+   * @returns The merged chart configuration.
+   */
   const mergeConfigs = (base: ChartConfig, override: Partial<ChartConfig>): ChartConfig => {
     const validationErrors = validateConfig(override);
     if (validationErrors.length > 0) {
@@ -61,6 +79,11 @@ export const ConfigurationManager = (() => {
     };
   };
 
+  /**
+   * Creates a chart configuration from the attributes of an HTML element.
+   * @param element - The HTML element from which to create the chart configuration.
+   * @returns A partial chart configuration object.
+   */
   const createFromAttributes = (element: HTMLElement): Partial<ChartConfig> => {
     const config: Partial<ChartConfig> = {};
 
