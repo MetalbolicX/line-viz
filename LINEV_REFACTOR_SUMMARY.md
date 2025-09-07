@@ -1,6 +1,7 @@
 # LineViz Component Refactoring Summary
 
 ## Overview
+
 The `LineViz` web component has been refactored to integrate with the new modular architecture, incorporating the service layer and event-driven communication patterns.
 
 ## Key Architectural Improvements
