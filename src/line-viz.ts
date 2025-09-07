@@ -1,12 +1,11 @@
 import { select, scaleOrdinal, schemeCategory10 } from "d3";
-import type {
-  LineVizConfig,
-  LineVizSeriesConfig,
-  ChartDataRow,
-  MarginConfig,
-} from "./types";
+import type { LineVizConfig, LineVizSeriesConfig, ChartDataRow } from "./types";
 import { createLineVizChart } from "./d3-line-viz";
 import { ChartEventEmitter } from "./events/ChartEventEmitter";
+import type {
+  ChartEventType,
+  ChartEventData,
+} from "./events/ChartEventEmitter";
 import { DataService, ConfigurationManager } from "./services";
 import type { ChartConfig } from "./services/configuration-manager";
 import "tipviz";
@@ -330,8 +329,6 @@ export class LineViz extends HTMLElement {
    * Returns the labels for the Y-axis series.
    */
   public get ySeriesLabels(): string[] {
-    // if (!this._config?.ySeries?.length) return [];
-    // return this._config.ySeries.map(({ label }) => label);
     return !this._config?.ySeries?.length
       ? []
       : this._config.ySeries.map(({ label }) => label);
@@ -394,11 +391,11 @@ export class LineViz extends HTMLElement {
    * @param handler - The event handler function.
    * @returns {void}
    */
-  public on<T extends import("./events/ChartEventEmitter").ChartEventType>(
+  public on<T extends ChartEventType>(
     eventType: T,
     handler: (
       event: CustomEvent<
-        import("./events/ChartEventEmitter").ChartEventData[T] & {
+        ChartEventData[T] & {
           timestamp: number;
         }
       >
@@ -413,11 +410,11 @@ export class LineViz extends HTMLElement {
    * @param handler - The event handler function to remove.
    * @returns {void}
    */
-  public off<T extends import("./events/ChartEventEmitter").ChartEventType>(
+  public off<T extends ChartEventType>(
     eventType: T,
     handler: (
       event: CustomEvent<
-        import("./events/ChartEventEmitter").ChartEventData[T] & {
+        ChartEventData[T] & {
           timestamp: number;
         }
       >
@@ -432,11 +429,11 @@ export class LineViz extends HTMLElement {
    * @param handler - The event handler function.
    * @returns {void}
    */
-  public once<T extends import("./events/ChartEventEmitter").ChartEventType>(
+  public once<T extends ChartEventType>(
     eventType: T,
     handler: (
       event: CustomEvent<
-        import("./events/ChartEventEmitter").ChartEventData[T] & {
+        ChartEventData[T] & {
           timestamp: number;
         }
       >
