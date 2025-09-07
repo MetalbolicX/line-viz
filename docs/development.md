@@ -16,23 +16,12 @@ The `LineViz` web component is built using TypeScript and follows a modular arch
 
 ```txt
 src/
-├── context/
-│   ├── ChartContext.ts          # Central context interface
-│   └── index.ts
-├── renderers/
-│   ├── AxisRenderer.ts          # X/Y axis rendering
-│   ├── GridRenderer.ts          # Grid line rendering
-│   ├── SeriesRenderer.ts        # Line series rendering
-│   ├── LegendRenderer.ts        # Legend rendering
-│   ├── CursorRenderer.ts        # Cursor and interactions
-│   ├── BrushRenderer.ts         # Brush/zoom functionality
-│   └── index.ts
-├── utils/
-│   ├── ChartUtils.ts            # Utility functions
-│   └── index.ts
-├── services/                    # Existing services (updated)
-│   ├── data-service.ts
-│   ├── configuration-manager.ts
-│   └── index.ts
-└── d3-line-viz.ts              # Main chart factory (refactored)
+├── events/           # Chart event emitter and event-related logic
+├── renderers/        # Chart rendering modules with D3.js (axes, grid, series, legend, cursor, brush, etc.)
+├── services/         # Chart services (data, configuration, svg dimensions, etc.)
+├── types/            # TypeScript type definitions and interfaces
+├── utils/            # Utility functions and helpers
+├── d3-line-viz.ts    # Main chart factory function
+├── line-viz.ts       # Chart web component definition
+├── index.ts          # Main module entry point of the package
 ```
