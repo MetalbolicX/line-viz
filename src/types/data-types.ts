@@ -16,9 +16,3 @@ export interface LineVizConfig<T = ChartDataRow> {
   ySeries: Array<LineVizSeriesConfig<T>>;
 }
 
-export interface MarginConfig {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-}

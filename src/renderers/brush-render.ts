@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import type { ChartContext } from "../context/chart-context";
+import type { ChartContext } from "../types/chart-context";
 
 /**
  * Sets up the brush behavior for x-axis zooming.

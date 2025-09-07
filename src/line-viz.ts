@@ -1,13 +1,15 @@
 import { select, scaleOrdinal, schemeCategory10 } from "d3";
-import type { LineVizConfig, LineVizSeriesConfig, ChartDataRow } from "./types";
-import { createLineVizChart } from "./d3-line-viz";
-import { ChartEventEmitter } from "./events/ChartEventEmitter";
 import type {
-  ChartEventType,
+  LineVizConfig,
+  LineVizSeriesConfig,
+  ChartDataRow,
   ChartEventData,
-} from "./events/ChartEventEmitter";
+  ChartEventType,
+  ChartConfig,
+} from "./types";
+import { createLineVizChart } from "./d3-line-viz";
+import { ChartEventEmitter } from "./events/chart-event-emitter";
 import { DataService, ConfigurationManager } from "./services";
-import type { ChartConfig } from "./services/configuration-manager";
 import "tipviz";
 import { TipVizTooltip } from "tipviz";
 

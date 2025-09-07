@@ -1,17 +1,4 @@
-import type { MarginConfig } from "../types";
-
-export interface ChartConfig {
-  transitionTime: number;
-  xTicks: number;
-  yTicks: number;
-  margin: MarginConfig;
-  formatXAxis: string;
-  formatYAxis: string;
-  yAxisLabel: string;
-  xAxisLabel: string;
-  isCurved: boolean;
-  isStatic: boolean;
-}
+import type { ChartConfig, MarginConfig } from "../types";
 
 const DEFAULT_TRANSITION_TIME = 0;
 const DEFAULT_X_TICKS = 5;
