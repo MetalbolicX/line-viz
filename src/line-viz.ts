@@ -661,23 +661,25 @@ export class LineViz extends HTMLElement {
     while (this.#selectElement.firstChild) {
       this.#selectElement.removeChild(this.#selectElement.firstChild);
     }
-    const allOption = document.createElement("option");
-    allOption.value = "All";
-    allOption.textContent = "All Series";
-    if (this._selectedSeries === "All") {
-      allOption.selected = true;
-    }
-    const optionsElements = seriesLabels.map((label) =>
-      this.#fromString(/*html*/ `
+
+    const options = this.#fromString(/*html*/ `
+      <option value="All" ${this._selectedSeries === "All" ? "selected" : ""}>
+        All Series
+      </option>
+      ${seriesLabels
+        .map(
+          (label) => /*html*/ `
       <option value="${label}" ${
-        this._selectedSeries === label ? "selected" : ""
-      }>
+            this._selectedSeries === label ? "selected" : ""
+          }>
         ${label}
       </option>
-    `)
-    );
+    `
+        )
+        .join("")}
+    `);
 
-    this.#selectElement.append(allOption, ...optionsElements);
+    this.#selectElement.append(...options.childNodes);
 
     // Update controls state
     this.#updateControls();
