@@ -67,7 +67,6 @@ const createLineVizChart = () => {
 	// 4. Attach builder methods (xSerie, series, data, colorScale, etc.)
 	//    Each updates context and returns the chart instance
 	// 5. Return the chart function as the builder instance
-}
 	// 3. Define a chart function that:
 	//    a. Validates setup
 	//    b. Calculates dimensions using ChartDimensions
