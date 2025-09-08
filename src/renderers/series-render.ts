@@ -7,7 +7,7 @@ import type { ChartContext } from "../types";
 export const renderSeries = (ctx: ChartContext): void => {
   if (!(ctx.series?.length && ctx.data?.length)) return;
 
-  const lineGenerator = line<{ x: number | Date; y: number }>()
+  const lineGenerator = line<{ x: number; y: number }>()
     .x(({ x }) => ctx.xScale(x) - ctx.margin.left)
     .y(({ y }) => ctx.yScale(y) - ctx.margin.top);
 
