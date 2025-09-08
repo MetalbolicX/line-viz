@@ -1,5 +1,5 @@
-import * as d3 from "d3";
-import type { ChartContext } from "../types/chart-context";
+import { line, curveCatmullRom, select } from "d3";
+import type { ChartContext } from "../types";
 
 /**
  * Renders the series lines on the chart.
@@ -7,13 +7,12 @@ import type { ChartContext } from "../types/chart-context";
 export const renderSeries = (ctx: ChartContext): void => {
   if (!(ctx.series?.length && ctx.data?.length)) return;
 
-  const line = d3
-    .line<{ x: number | Date; y: number }>()
+  const lineGenerator = line<{ x: number | Date; y: number }>()
     .x(({ x }) => ctx.xScale(x) - ctx.margin.left)
     .y(({ y }) => ctx.yScale(y) - ctx.margin.top);
 
   if (ctx.isCurved) {
-    line.curve(d3.curveCatmullRom);
+    lineGenerator.curve(curveCatmullRom);
   }
 
   // Create a group for all series
@@ -51,10 +50,10 @@ export const renderSeries = (ctx: ChartContext): void => {
           .append("path")
           .attr("class", "serie")
           .attr("data-label", ({ label }) => label)
-          .attr("d", ({ coordinates }) => line(coordinates))
+          .attr("d", ({ coordinates }) => lineGenerator(coordinates))
           .style("stroke", ({ color }) => color)
           .each(function () {
-            const path = d3.select(this);
+            const path = select(this);
             const totalLength = (this as SVGPathElement).getTotalLength();
             path
               .attr("stroke-dasharray", totalLength)
@@ -67,14 +66,14 @@ export const renderSeries = (ctx: ChartContext): void => {
         update
           .each(function () {
             // clear stroke-dash settings that were added by the enter animation
-            d3.select(this)
+            select(this)
               .attr("stroke-dasharray", null)
               .attr("stroke-dashoffset", null);
           })
           .transition()
           .duration(ctx.transitionTime)
           .style("stroke", ({ color }) => color)
-          .attr("d", ({ coordinates }) => line(coordinates)),
+          .attr("d", ({ coordinates }) => lineGenerator(coordinates)),
       (exit) => exit.remove()
     );
 };

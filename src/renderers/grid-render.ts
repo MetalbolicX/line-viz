@@ -1,4 +1,4 @@
-import type { ChartContext } from "../types/chart-context";
+import type { ChartContext } from "../types";
 
 /**
  * Renders the X grid lines on the chart.
