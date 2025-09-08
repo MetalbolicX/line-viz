@@ -167,36 +167,36 @@ export class LineViz extends HTMLElement {
   }
 
   .series .serie {
-      fill: none;
-      stroke-width: 2;
+    fill: none;
+    stroke-width: 2;
   }
 
   .series:has(.serie:hover, .point:hover) .series-group:not(:hover) {
-      opacity: 0.3;
+    opacity: 0.3;
   }
 
   .series:has(.serie:hover, .point:hover) .series-group:hover {
-      opacity: 1;
+    opacity: 1;
   }
 
   .series:has(.serie:hover, .point:hover) .series-group:hover .serie {
-        stroke-width: 4;
+    stroke-width: 4;
   }
 
   .cursor.hidden {
-      visibility: hidden;
+    visibility: hidden;
   }
 
   .cursor.point {
-      fill: white;
-      stroke-width: 2;
+    fill: white;
+    stroke-width: 2;
   }
 
   .cursor.vertical-line {
-      stroke: #666;
-      stroke-width: 1;
-      stroke-dasharray: 3, 3;
-      pointer-events: none;
+    stroke: #666;
+    stroke-width: 1;
+    stroke-dasharray: 3, 3;
+    pointer-events: none;
   }
 
   .legend-item {
@@ -208,10 +208,10 @@ export class LineViz extends HTMLElement {
   }
 
   .legend-item rect {
-      width: 1em;
-      height: 1em;
-      display: inline-block;
-      margin-right: 0.5rem;
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    margin-right: 0.5rem;
   }
 
   .axis-label {

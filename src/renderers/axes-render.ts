@@ -1,14 +1,13 @@
-import * as d3 from "d3";
+import { axisBottom, format, axisLeft } from "d3";
 import type { ChartContext } from "../types/chart-context";
 
 /**
  * Renders the X axis of the chart.
  */
 export const renderXAxis = (ctx: ChartContext): void => {
-  const xAxis = d3
-    .axisBottom(ctx.xScale)
+  const xAxis = axisBottom(ctx.xScale)
     .ticks(ctx.xTicks)
-    .tickFormat(d3.format(ctx.formatXAxis) as any);
+    .tickFormat(format(ctx.formatXAxis) as any);
 
   ctx.selection
     .selectAll(".x.axis")
@@ -23,10 +22,9 @@ export const renderXAxis = (ctx: ChartContext): void => {
  * Renders the Y axis of the chart.
  */
 export const renderYAxis = (ctx: ChartContext): void => {
-  const yAxis = d3
-    .axisLeft(ctx.yScale)
+  const yAxis = axisLeft(ctx.yScale)
     .ticks(ctx.yTicks)
-    .tickFormat(d3.format(ctx.formatYAxis));
+    .tickFormat(format(ctx.formatYAxis));
 
   ctx.selection
     .selectAll(".y.axis")
