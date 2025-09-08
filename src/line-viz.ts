@@ -6,10 +6,10 @@ import type {
   ChartEventData,
   ChartEventType,
   ChartConfig,
-} from "./types";
-import { createLineVizChart } from "./d3-line-viz";
-import { ChartEventEmitter } from "./events/chart-event-emitter";
-import { DataService, ConfigurationManager } from "./services";
+} from "@/types";
+import { createLineVizChart } from "@/d3-line-viz";
+import { ChartEventEmitter } from "@/events/chart-event-emitter";
+import { DataService, ConfigurationManager } from "@/services";
 import "tipviz";
 import { TipVizTooltip } from "tipviz";
 

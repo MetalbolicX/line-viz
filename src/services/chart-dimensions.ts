@@ -1,4 +1,4 @@
-import { MarginConfig } from "../types";
+import { MarginConfig } from "@/types";
 
 /**
  * Manages the dimensions and margins of an SVG container for chart rendering.

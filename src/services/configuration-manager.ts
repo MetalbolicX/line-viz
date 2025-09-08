@@ -1,4 +1,4 @@
-import type { ChartConfig, MarginConfig } from "../types";
+import type { ChartConfig, MarginConfig } from "@/types";
 
 const DEFAULT_TRANSITION_TIME = 0;
 const DEFAULT_X_TICKS = 5;

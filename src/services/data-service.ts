@@ -1,4 +1,4 @@
-import type { ChartDataRow, LineVizSeriesConfig } from "../types";
+import type { ChartDataRow, LineVizSeriesConfig } from "@/types";
 
 /**
  * Creates a data service for managing chart data.
