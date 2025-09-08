@@ -1,6 +1,5 @@
-import * as d3 from "d3";
-import type { ChartContext } from "../types/chart-context";
-import type { ChartDataRow } from "../types";
+import { pointer, bisector, select } from "d3";
+import type { ChartDataRow, ChartContext } from "../types";
 
 /**
  * Renders the cursor on the chart.
@@ -77,7 +76,7 @@ export const setupCursorEvents = (ctx: ChartContext): void => {
    * Handle cursor movement and closest point detection.
    */
   const handlePointerMoveCursor = (event: PointerEvent) => {
-    const [mouseX, mouseY] = d3.pointer(event);
+    const [mouseX, mouseY] = pointer(event);
     const [xMinRange, xMaxRange] = ctx.xScale.range();
     const [yMaxRange, yMinRange] = ctx.yScale.range();
 
@@ -96,7 +95,7 @@ export const setupCursorEvents = (ctx: ChartContext): void => {
     // Use d3.bisector for O(log n) lookup
     const xValues = ctx.data.map(ctx.xSerie);
     const mouseDate = ctx.xScale.invert(mouseX);
-    const bisect = d3.bisector((d: number) => d).center;
+    const bisect = bisector((d: number) => d).center;
     const idx = bisect(xValues as number[], mouseDate);
 
     // Clamp index to valid range
@@ -117,7 +116,7 @@ export const setupCursorEvents = (ctx: ChartContext): void => {
    */
   const handleClosestPointOver = ({ target }: PointerEvent) => {
     if (target instanceof SVGElement && target.classList.contains("point")) {
-      const datum = d3.select(target).datum();
+      const datum = select(target).datum();
 
       if (hideTooltipTimeout) {
         clearTimeout(hideTooltipTimeout);
