@@ -1,4 +1,4 @@
-import * as d3 from "d3";
+import { scaleLinear } from "d3";
 import { ConfigurationManager, DataService, ChartDimensions } from "./services";
 import {
   renderXAxis,
@@ -109,8 +109,7 @@ export const createLineVizChart = () => {
       return;
     }
 
-    ctx.xScale = d3
-      .scaleLinear()
+    ctx.xScale = scaleLinear()
       .domain(xDomain)
       .range(dimensions.innerXRange)
       .nice();
@@ -132,8 +131,7 @@ export const createLineVizChart = () => {
       return;
     }
 
-    ctx.yScale = d3
-      .scaleLinear()
+    ctx.yScale = scaleLinear()
       .domain(yDomain)
       .range(dimensions.innerYRange)
       .nice();
