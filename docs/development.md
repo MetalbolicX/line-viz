@@ -79,3 +79,23 @@ const createLineVizChart = () => {
 	// 5. Return the chart function as the builder instance
 }
 ```
+
+### line-viz.ts
+
+The `line-viz.ts` module defines the `LineViz` web component, which encapsulates the D3.js line chart as a reusable, standards-based custom HTML element. The design and implementation of this component reflect several key architectural and development decisions:
+
+- **Web Component Encapsulation**: By extending `HTMLElement` and using the Shadow DOM, `LineViz` ensures style and DOM encapsulation, preventing external styles from leaking in and internal styles from leaking out. This makes the component portable and safe to use in any web application or framework.
+
+- **Separation of Concerns**: The component delegates all chart rendering and configuration logic to the `createLineVizChart` builder from `d3-line-viz.ts`. This keeps the web component focused on DOM management, user interaction, and integration, while the chart builder handles D3-specific logic and state.
+
+- **Configuration and State Management**: The component uses a private configuration object (`#chartConfig`) and exposes a public `config` setter for external configuration. It merges attribute-based and programmatic configuration using the `ConfigurationManager` service, ensuring a consistent and flexible setup.
+
+- **Event-Driven Architecture**: The `ChartEventEmitter` service is used for internal and external event handling, supporting custom events such as data changes, configuration changes, series selection, and interaction events. This decouples event logic from rendering and enables consumers to subscribe to chart events in a standard way.
+
+- **Services for Data and Configuration**: The component relies on services like `DataService` for data filtering and validation, and `ConfigurationManager` for configuration parsing and merging. This modular approach keeps business logic out of the component and promotes reusability and testability.
+
+- **Dynamic Controls and Interactivity**: The component dynamically generates UI controls (series selector, reset zoom button) and updates their state based on the current data and configuration. It also manages user interactions such as series selection and zoom reset, emitting corresponding events for integration with other application logic.
+
+- **Tooltip Integration**: The component integrates with the `tipviz` tooltip library, exposing methods to customize tooltip content and style, and passing the tooltip instance to the chart builder for coordinated interaction.
+
+This architecture results in a highly modular, maintainable, and extensible chart component that can be easily integrated into modern web applications. By leveraging services, event-driven patterns, and the builder pattern for chart construction, the codebase remains clean, testable, and adaptable to future requirements.
