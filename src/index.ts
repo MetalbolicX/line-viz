@@ -1,4 +1,4 @@
-export * from "./types";
-export { LineViz } from "./line-viz";
+export * from "@/types";
+export { LineViz } from "@/line-viz";
 
-import "./line-viz";
+import "@/line-viz";
