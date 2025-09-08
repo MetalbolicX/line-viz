@@ -1,5 +1,6 @@
-import * as d3 from "d3";
-import type { ChartContext } from "../types/chart-context";
+import { brushX } from "d3";
+import type { D3BrushEvent } from "d3";
+import type { ChartContext } from "../types";
 
 /**
  * Sets up the brush behavior for x-axis zooming.
@@ -16,8 +17,7 @@ export const setupBrush = (ctx: ChartContext, onRedraw?: () => void): void => {
   }
 
   // Create brush behavior - use inner chart dimensions only
-  ctx.brush = d3
-    .brushX()
+  ctx.brush = brushX()
     .extent([
       [0, 0],
       [ctx.innerWidth, ctx.innerHeight],
@@ -61,7 +61,11 @@ export const setupBrush = (ctx: ChartContext, onRedraw?: () => void): void => {
 /**
  * Handles the brush event for x-axis zooming.
  */
-const handleBrush = (event: d3.D3BrushEvent<unknown>, ctx: ChartContext, onRedraw?: () => void): void => {
+const handleBrush = (
+  event: D3BrushEvent<unknown>,
+  ctx: ChartContext,
+  onRedraw?: () => void
+): void => {
   const extent = event.selection;
 
   if (!extent) {
