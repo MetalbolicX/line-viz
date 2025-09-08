@@ -1,4 +1,4 @@
-import type { Selection, ScaleOrdinal, ScaleLinear } from "d3";
+import type { Selection, ScaleOrdinal, ScaleLinear, BrushBehavior } from "d3";
 import type { ChartDataRow, LineVizSeriesConfig, MarginConfig } from "@/types";
 import type { TipVizTooltip } from "tipviz";
 
@@ -38,7 +38,7 @@ export interface ChartContext {
   tooltip: TipVizTooltip;
 
   // Brush and zoom state (optional for some renderers)
-  brush?: d3.BrushBehavior<unknown>;
+  brush?: BrushBehavior<unknown>;
   originalXDomain?: [number, number] | null;
   isZoomed?: boolean;
   idleTimeout?: any;
