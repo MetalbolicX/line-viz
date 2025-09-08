@@ -8,7 +8,7 @@ import type {
   ChartConfig,
 } from "@/types";
 import { createLineVizChart } from "@/d3-line-viz";
-import { ChartEventEmitter } from "@/events/chart-event-emitter";
+import { ChartEventEmitter } from "@/events";
 import { DataService, ConfigurationManager } from "@/services";
 import "tipviz";
 import { TipVizTooltip } from "tipviz";
