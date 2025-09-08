@@ -1,6 +1,6 @@
 import { brushX } from "d3";
 import type { D3BrushEvent } from "d3";
-import type { ChartContext } from "../types";
+import type { ChartContext } from "@/types";
 
 /**
  * Sets up the brush behavior for x-axis zooming.

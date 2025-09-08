@@ -1,5 +1,5 @@
 import { scaleLinear } from "d3";
-import { ConfigurationManager, DataService, ChartDimensions } from "./services";
+import { ConfigurationManager, DataService, ChartDimensions } from "@/services";
 import {
   renderXAxis,
   renderYAxis,
@@ -12,16 +12,16 @@ import {
   setupCursorEvents,
   setupBrush,
   resetZoom as resetZoomBrush,
-} from "./renderers";
+} from "@/renderers";
 
-import { validateSetup } from "./utils";
+import { validateSetup } from "@/utils";
 import type { Selection, ScaleOrdinal } from "d3";
 import type {
   LineVizSeriesConfig,
   ChartDataRow,
   MarginConfig,
   ChartContext,
-} from "./types";
+} from "@/types";
 import type { TipVizTooltip } from "tipviz";
 
 /**

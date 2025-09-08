@@ -1,5 +1,5 @@
 import { axisBottom, format, axisLeft } from "d3";
-import type { ChartContext } from "../types/chart-context";
+import type { ChartContext } from "@/types";
 
 /**
  * Renders the X axis of the chart.

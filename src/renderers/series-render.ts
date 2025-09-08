@@ -1,5 +1,5 @@
 import { line, curveCatmullRom, select } from "d3";
-import type { ChartContext } from "../types";
+import type { ChartContext } from "@/types";
 
 /**
  * Renders the series lines on the chart.

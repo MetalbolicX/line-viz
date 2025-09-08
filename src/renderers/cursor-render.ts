@@ -1,5 +1,5 @@
 import { pointer, bisector, select } from "d3";
-import type { ChartDataRow, ChartContext } from "../types";
+import type { ChartDataRow, ChartContext } from "@/types";
 
 /**
  * Renders the cursor on the chart.
