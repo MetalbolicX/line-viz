@@ -1,5 +1,5 @@
 import type { Selection, ScaleOrdinal, ScaleLinear } from "d3";
-import type { ChartDataRow, LineVizSeriesConfig, MarginConfig } from "../types";
+import type { ChartDataRow, LineVizSeriesConfig, MarginConfig } from "@/types";
 import type { TipVizTooltip } from "tipviz";
 
 export interface ChartContext {
